@@ -1,0 +1,332 @@
+#include <array>
+#include <vector>
+#include <memory>
+#include <string>
+
+#include "Party.h"
+#include "Data_Structures.h"
+#include "Enums.h"
+#include "Utils.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::array<std::pair<int, std::weak_ptr<Entity>>, 4>& Party::get_party() const { return party; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::array<std::pair<int, std::vector<std::weak_ptr<Rewards>>>, 4>& Party::get_reward_buffer() const { return reward_buffer; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const Party_State& Party::get_party_state() const { return party_state; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const bool Party::get_single_player() const { return single_player; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const int Party::get_avg_level() const { return avg_level; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const int Party::get_party_size() const { return party_size; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_party(std::array<std::pair<int, std::weak_ptr<Entity>>, 4>& new_party) { party = new_party; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_reward_buffer(std::array<std::pair<int, std::vector<std::weak_ptr<Rewards>>>, 4>& new_reward_buffer) { reward_buffer = new_reward_buffer; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_party_state(Party_State new_party_state) { party_state = new_party_state; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_single_player(bool new_single_player) { single_player = new_single_player; }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_avg_level(int new_avg_level)
+{
+	if (avg_level <= 0)
+		throw std::invalid_argument("invalid avg_level entered must be positive");
+	else
+		avg_level = new_avg_level;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_party_size(int new_party_size)
+{
+	if (in_range(new_party_size, 1, 4))
+	{
+		party_size = new_party_size;
+	}
+	else
+		throw std::invalid_argument("invalid party_size entered must be in (1 - 4)");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::assign_party_members(Entity_Manager_Lambda& entity_manager_lambda)
+{
+	if (entity_manager_lambda.get_entity_manager().empty())
+		throw std::runtime_error("no player to choose");
+	std::array<int, 4> ids;
+
+	party.fill({ 0, {} });
+	reward_buffer.fill({ 0, {} });
+
+	while (true)
+	{
+		try
+		{
+			ids.fill(0);
+
+			print_line(5);
+
+			if (get_single_player())
+			{
+				print("please enter the id of the chosen character\n", 5);
+
+				ids[0] = ask_id(entity_manager_lambda.get_entity_manager(), false, entity_manager_lambda.display_player, "player id : ", 5);
+			}
+			else
+			{
+				print("please enter the id of the 4 chosen characters", 5);
+
+				ids[0] = ask_id(entity_manager_lambda.get_entity_manager(), false, entity_manager_lambda.display_player, "player 1 id : ", 5);
+				ids[1] = ask_id(entity_manager_lambda.get_entity_manager(), false, entity_manager_lambda.display_player, "player 2 id : ", 5);
+				ids[2] = ask_id(entity_manager_lambda.get_entity_manager(), false, entity_manager_lambda.display_player, "player 3 id : ", 5);
+				ids[3] = ask_id(entity_manager_lambda.get_entity_manager(), false, entity_manager_lambda.display_player, "player 4 id : ", 5);
+
+				check_for_duplicates(ids);
+			}
+
+			for (int i = 0; i < get_party_size(); i++)
+			{
+				if (auto p = entity_manager_lambda.get_entity(ids[i]).lock())
+				{
+					if (!p->get_is_player())
+						throw std::invalid_argument("chosen character is not a player");
+				}
+
+				reward_buffer[i].first = ids[i];
+				party[i].first = ids[i];
+				party[i].second = entity_manager_lambda.get_entity(ids[i]);
+			}
+
+			break;
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::assign_member_rewards(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda)
+{
+	for (int i = 0; i < get_party_size(); i++) // iterate through both arrays
+	{
+		if (auto p = party[i].second.lock()) // check for entity's existance
+		{
+			for (const auto& v : reward_buffer[i].second) // iterate through reward vector for the selected player
+			{
+				if (auto o = v.lock()) // check for reward's existance
+				{
+					p->gain_xp(o->get_xp());
+					p->gain_gold(o->get_gold());
+
+					for (const auto& [item_id, owned_item] : o->get_reward_item_pointers()) // iterate through item pointer map for the selected reward
+					{
+						p->add_item_to_inventory(item_id, owned_item);
+					}
+				}
+			}
+		}
+	}
+
+	reward_buffer.fill({ 0, {} });
+	entity_manager_lambda.dirty_entity_checkpoint(data_base_lambda);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda)
+{
+	set_party_state(Party_State::Resting);
+
+	int choice, inner_choice;
+	bool no_exit{ true };
+
+	while (true)
+	{
+		try
+		{
+			print_line(5);
+
+			print("1. check for level up\n"
+				"2. equip/change equipped weapon or armor\n"
+				"3. access the interdimental vendor gokron\n"
+				"4. stop resting\n", 5);
+
+			choice = input<int>("your choice : ", 5);
+
+			switch (choice)
+			{
+			case 1:
+				break;
+
+			case 2:
+				while (no_exit)
+				{
+					print_line(5);
+
+					print("choose which player to equip item\n", 5);
+
+					for (int i = 0; i < get_party_size(); i++)
+					{
+
+						if (auto p = party[i].second.lock())
+						{
+							print("1. " + p->get_name() + "\n", 5);
+						}
+					}
+
+					inner_choice = input<int>("your choice : ", 5);
+
+					if (in_range(inner_choice, 1, party_size))
+					{
+						if (auto p = party[inner_choice - 1].second.lock())
+						{
+							p->equip_item();
+						}
+					}
+					else
+						print("invalid choice entered ");
+
+				}
+				break;
+
+			case 3:
+				//add the shop bullshit stuff here
+				break;
+
+			case 4:
+				print("the party stops resting and packs their belongings getting ready to adventure\n", 5);
+				return;
+				break;
+
+			default:
+				print("invalid choice entered\n", 5);
+				break;
+			}
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
+
+	entity_manager_lambda.dirty_entity_checkpoint(data_base_lambda);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::calculate_avg_level()
+{
+	int avg{ 0 };
+
+	for (int i = 0; i < get_party_size(); i++)
+	{
+		if (auto p = party[i].second.lock())
+		{
+			avg += p->get_level();
+		}
+	}
+
+	set_avg_level(avg / get_party_size());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::share_gold(int from_index, int to_index, int amount)
+{
+	if (!in_range(1, get_party_size(), from_index))
+		throw std::runtime_error("from index does not exist in party");
+
+	if (!in_range(1, get_party_size(), to_index))
+		throw std::runtime_error("to index does not exist in party");
+
+	if (amount <= -1)
+		throw std::invalid_argument("invalid gold count entered");
+
+
+	if (auto p = party[from_index].second.lock())
+	{
+		if (p->get_gold() < amount)
+			throw std::invalid_argument("not enough gold to give");
+
+		p->set_gold(p->get_gold() - amount);
+	}
+
+	if (auto p = party[to_index].second.lock())
+	{
+		p->set_gold(p->get_gold() + amount);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::share_item(int from_index, int to_index, int item_id, int count)
+{
+	if (!in_range(from_index, 1, get_party_size()))
+		throw std::runtime_error("from index does not exist in party");
+
+	if (!in_range(to_index, 1, get_party_size()))
+		throw std::runtime_error("to index does not exist in party");
+
+	if (count <= -1)
+		throw std::invalid_argument("invalid item count entered");
+
+	if (auto p = party[from_index].second.lock())
+	{
+		if (!p->get_inventory().count(item_id))
+			throw std::invalid_argument("item does not exist in " + p->get_name() + "'s inventory");
+
+		if (p->get_inventory().at(item_id).quantity < count)
+			throw std::invalid_argument("not enough item to give");
+
+		if (auto o = party[to_index].second.lock())
+		{
+			o->add_item_to_inventory(item_id, Owned_Items{ p->get_inventory().at(item_id).item, count });
+		}
+
+		p->remove_item_from_inventory(item_id, count);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda) : single_player(new_single_player)
+{
+	set_party_size(1);
+	assign_party_members(entity_manager_lambda);
+	calculate_avg_level();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda, int new_party_size) : single_player(new_single_player)
+{
+	set_party_size(new_party_size);
+	assign_party_members(entity_manager_lambda);
+	calculate_avg_level();
+}
