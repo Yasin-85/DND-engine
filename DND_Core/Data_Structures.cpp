@@ -849,14 +849,13 @@ void Entity::level_up()
 
 		levels_gained++;
 	}
-	set_current_hp(get_max_hp());
-	set_current_mana(get_max_mana());
 
 	if (levels_gained > 0)
 	{
 		print(get_name() + "LEVELED UP " + std::to_string(levels_gained) + " time(s), current level : " + std::to_string(get_level()) + "\n", 5);
 		stats_upgrade(levels_gained);
 		set_current_hp(get_max_hp());
+		set_current_mana(get_max_mana());
 	}
 	else
 	{

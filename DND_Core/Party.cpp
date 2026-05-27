@@ -168,20 +168,30 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 
 	while (true)
 	{
+		no_exit = true;
+
 		try
 		{
 			print_line(5);
 
 			print("1. check for level up\n"
 				"2. equip/change equipped weapon or armor\n"
-				"3. access the interdimental vendor gokron\n"
-				"4. stop resting\n", 5);
+				"3. access the interdimentional vendor, gokron\n"
+				"4. share gold between party members\n"
+				"5. share item between party members\n"
+				"6. stop resting\n", 5);
 
 			choice = input<int>("your choice : ", 5);
 
 			switch (choice)
 			{
 			case 1:
+				for (int i = 0; i < get_party_size(); i++)
+				{
+					print_line(5);
+					if (auto p = party[i].second.lock())
+						p->level_up();
+				}
 				break;
 
 			case 2:
@@ -200,7 +210,7 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 						}
 					}
 
-					inner_choice = input<int>("your choice : ", 5);
+					inner_choice = input<int>("your choice (-1 to exit) : ", 5);
 
 					if (in_range(inner_choice, 1, party_size))
 					{
@@ -209,8 +219,14 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 							p->equip_item();
 						}
 					}
+					else if (inner_choice == -1)
+					{
+						print("going back\n", 5);
+						no_exit = false;
+					}
+
 					else
-						print("invalid choice entered ");
+						print("invalid choice entered\n", 5);
 
 				}
 				break;
@@ -220,6 +236,18 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 				break;
 
 			case 4:
+			{
+				share_gold();
+				break;
+			}
+
+			case 5:
+			{
+				share_item();
+				break;
+			}
+
+			case 6:
 				print("the party stops resting and packs their belongings getting ready to adventure\n", 5);
 				return;
 				break;

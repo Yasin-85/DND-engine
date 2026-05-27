@@ -50,6 +50,8 @@ public:
 
 	void share_item(int from_index, int to_index, int item_id, int count);
 
+	void display_party_member_details();
+
 	//CONSTRUCTOR
 	Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda);
 
