@@ -163,12 +163,10 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 {
 	set_party_state(Party_State::Resting);
 
-	int choice, inner_choice;
-	bool no_exit{ true };
+	int choice, inner_choice, inner_choice1;
 
 	while (true)
-	{
-		no_exit = true;
+	{;
 
 		try
 		{
@@ -195,20 +193,13 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 				break;
 
 			case 2:
-				while (no_exit)
+				while (true)
 				{
 					print_line(5);
 
 					print("choose which player to equip item\n", 5);
 
-					for (int i = 0; i < get_party_size(); i++)
-					{
-
-						if (auto p = party[i].second.lock())
-						{
-							print("1. " + p->get_name() + "\n", 5);
-						}
-					}
+					display_party_member_details();
 
 					inner_choice = input<int>("your choice (-1 to exit) : ", 5);
 
@@ -222,7 +213,7 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 					else if (inner_choice == -1)
 					{
 						print("going back\n", 5);
-						no_exit = false;
+						break;
 					}
 
 					else
@@ -236,16 +227,127 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 				break;
 
 			case 4:
-			{
-				share_gold();
+				while (true)
+				{
+					print_line(5);
+
+					print("choose which player to take gold from and which to give\n", 5);
+
+					display_party_member_details();
+
+					inner_choice = input<int>("from player (-1 to exit) : ", 5);
+					if (inner_choice == -1)
+					{
+						print("going back\n", 5);
+						break;
+					}
+					if (!in_range(inner_choice, 1, get_party_size()))
+					{
+						throw std::invalid_argument("invalid player index entered");
+					}
+
+					inner_choice1 = input<int>("to player (-1 to exit) : ", 5);
+					if (inner_choice1 == -1)
+					{
+						print("going back\n", 5);
+						break;
+					}
+					if (!in_range(inner_choice1, 1, get_party_size()))
+					{
+						throw std::invalid_argument("invalid player index entered");
+					}
+
+					int amount = input<int>("the amount of gold to pass : ", 5);
+
+					share_gold(inner_choice - 1, inner_choice1 - 1, amount);
+
+					if (inner_choice == inner_choice1)
+					{
+						if (auto p = party[inner_choice - 1].second.lock())
+						{
+							p->display_info();
+							print("you took gold from yourself and gave it back to yourself, tf did u expect was going to happen ?\n");
+						}
+					}
+					else
+					{
+						if (auto p = party[inner_choice - 1].second.lock())
+						{
+							p->display_info();
+						}
+
+						if (auto p = party[inner_choice1 - 1].second.lock())
+						{
+							p->display_info();
+						}
+					}
+				}
 				break;
-			}
 
 			case 5:
-			{
-				share_item();
+				while (true)
+				{
+					print_line(5);
+
+					print("choose which player to take an item or items from and which to give\n", 5);
+
+					display_party_member_details();
+
+					inner_choice = input<int>("from player (-1 to exit) : ", 5);
+					if (inner_choice == -1)
+					{
+						print("going back\n", 5);
+						break;
+					}
+					if (!in_range(inner_choice, 1, get_party_size()))
+					{
+						throw std::invalid_argument("invalid player index entered");
+					}
+
+					inner_choice1 = input<int>("to player (-1 to exit) : ", 5);
+					if (inner_choice1 == -1)
+					{
+						print("going back\n", 5);
+						break;
+					}
+					if (!in_range(inner_choice1, 1, get_party_size()))
+					{
+						throw std::invalid_argument("invalid player index entered");
+					}
+
+					int item_id = input<int>("choose which item to give (its id) : ", 5);
+
+					if (auto p = party[inner_choice - 1].second.lock())
+						p->display_inventory();
+
+					int amount = input<int>("the amount of items to pass : ");
+
+					share_item(inner_choice - 1, inner_choice1 - 1, item_id, amount);
+					
+					if (inner_choice == inner_choice1)
+					{
+						if (auto p = party[inner_choice - 1].second.lock())
+						{
+							p->display_inventory();
+							print("you took an item / items from yourself and gave it back to yourself, tf did u expect was going to happen ?\n");
+						}
+					}
+					else
+					{
+						if (auto p = party[inner_choice - 1].second.lock())
+						{
+							p->display_info();
+							p->display_inventory();
+						}
+
+						if (auto p = party[inner_choice1 - 1].second.lock())
+						{
+							p->display_info();
+							p->display_inventory();
+						}
+					}
+				}
 				break;
-			}
 
 			case 6:
 				print("the party stops resting and packs their belongings getting ready to adventure\n", 5);
@@ -294,7 +396,7 @@ void Party::share_gold(int from_index, int to_index, int amount)
 		throw std::runtime_error("to index does not exist in party");
 
 	if (amount <= -1)
-		throw std::invalid_argument("invalid gold count entered");
+		throw std::invalid_argument("invalid gold amount entered");
 
 
 	if (auto p = party[from_index].second.lock())
@@ -338,6 +440,21 @@ void Party::share_item(int from_index, int to_index, int item_id, int count)
 		}
 
 		p->remove_item_from_inventory(item_id, count);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::display_party_member_details()
+{
+	for (int i = 0; i < get_party_size(); i++)
+	{
+		if (auto p = party[i].second.lock())
+		{
+			print(std::to_string(i + 1) + ". ", 5);
+			p->display_info();
+			p->display_stats();
+		}
 	}
 }
 

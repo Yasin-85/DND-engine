@@ -85,6 +85,7 @@ bool main_menu(World_Inventory& WI,
 			{
 				party.reset();
 				party = std::make_shared<Party>(true, *EM.lambda);
+				party->display_party_member_details();
 				return false;
 				break;
 			}
@@ -104,6 +105,7 @@ bool main_menu(World_Inventory& WI,
 						print("invalid player count entered\n");
 				}
 				party = std::make_shared<Party>(false, *EM.lambda, party_size);
+				party->display_party_member_details();
 				return false;
 				break;
 			}
