@@ -27,6 +27,7 @@
     <ClCompile Include="Party.cpp" />
     <ClCompile Include="Quest_Manager.cpp" />
     <ClCompile Include="Rewards_Manager.cpp" />
+    <ClCompile Include="Shop.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="World_Inventory.cpp" />
   </ItemGroup>
@@ -40,6 +41,7 @@
     <ClInclude Include="Party.h" />
     <ClInclude Include="Quest_Manager.h" />
     <ClInclude Include="Rewards_Manager.h" />
+    <ClInclude Include="Shop.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="World_Inventory.h" />
   </ItemGroup>

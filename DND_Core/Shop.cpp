@@ -1,0 +1,66 @@
+#include <memory>
+#include <unordered_map>
+
+#include "Shop.h"
+#include "Data_Structures.h"
+#include "Utils.h"
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::array<std::pair<int, Owned_Items>, 5>& Shop::get_shop_inventory() const
+{
+	return shop_inventory;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const std::unordered_map<int, std::weak_ptr<Item>>& Shop::get_world_inventory_backup() const
+{
+	return world_inventory_backup;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Shop::set_shop_inventory(std::array<std::pair<int, Owned_Items>, 5>& new_shop_inventory)
+{
+	shop_inventory = new_shop_inventory;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Shop::set_world_inventory_backup(std::unordered_map<int, std::weak_ptr<Item>>& new_world_inventory_backup)
+{
+	world_inventory_backup = new_world_inventory_backup;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Shop::reset_shop_inventory()
+{
+	if (get_world_inventory_backup().empty())
+	{
+		print("no items available to stock the shop\n");
+		return;
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		int random_num = dice_roll(get_world_inventory_backup().size()) - 1;
+
+		auto it = std::next(get_world_inventory_backup().begin(), random_num);
+
+		shop_inventory[i].first = it->first;
+		shop_inventory[i].second.item = it->second;
+		shop_inventory[i].second.quantity = dice_roll(10);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Shop::Shop(World_Inventory_Lambda& world_inventory_lambda)
+{
+	const auto& world_inv = world_inventory_lambda.get_world_inventory();
+	for (const auto& [id, ptr] : world_inv) 
+	{
+		world_inventory_backup[id] = ptr;  // shared_ptr in to weak_ptr
+	}
+}
