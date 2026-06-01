@@ -42,6 +42,8 @@ public:
 
 	void assign_member_rewards(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda);
 
+	void rest_heal();
+
 	void party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda);
 
 	void calculate_avg_level();

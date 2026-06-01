@@ -159,11 +159,48 @@ void Party::assign_member_rewards(Data_Base_Lambda& data_base_lambda, Entity_Man
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Party::rest_heal() 
+{
+	for (int i = 0; i < get_party_size(); i++) 
+	{
+		if (auto p = party[i].second.lock()) 
+		{
+			p->set_current_hp(p->get_max_hp());
+			p->set_current_mana(p->get_max_mana());
+		}
+	}
+	print("Party fully healed!\n");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda)
 {
 	set_party_state(Party_State::Resting);
 
+	int location_id;
+
+	if (auto p = party[0].second.lock())
+	{
+		location_id = p->get_current_locaion_id();
+	}
+
+	for (int i = 0; i < get_party_size(); i++)
+	{
+		if (auto p = party[i].second.lock())
+		{
+			if (location_id != p->get_current_locaion_id())
+			{
+				print("party members are scattered They must gather to rest\n", 5);
+				print("travel to the same location first\n", 5);
+				return;
+			}
+		}
+	}
+
 	int choice, inner_choice, inner_choice1;
+
+	rest_heal();
 
 	while (true)
 	{;
