@@ -18,7 +18,7 @@ const std::array<std::pair<int, std::vector<std::weak_ptr<Rewards>>>, 4>& Party:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const Party_State& Party::get_party_state() const { return party_state; }
+const Party_State Party::get_party_state() const { return party_state; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -236,7 +236,7 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 
 					print("choose which player to equip item\n", 5);
 
-					display_party_member_details();
+					lambda->display_party_members_details();
 
 					inner_choice = input<int>("your choice (-1 to exit) : ", 5);
 
@@ -270,7 +270,7 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 
 					print("choose which player to take gold from and which to give\n", 5);
 
-					display_party_member_details();
+					lambda->display_party_members_details();
 
 					inner_choice = input<int>("from player (-1 to exit) : ", 5);
 					if (inner_choice == -1)
@@ -328,7 +328,7 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 
 					print("choose which player to take an item or items from and which to give\n", 5);
 
-					display_party_member_details();
+					lambda->display_party_members_details();
 
 					inner_choice = input<int>("from player (-1 to exit) : ", 5);
 					if (inner_choice == -1)
@@ -482,33 +482,156 @@ void Party::share_item(int from_index, int to_index, int item_id, int count)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Party::display_party_member_details()
+void Party::set_display_party_member_details()
 {
-	for (int i = 0; i < get_party_size(); i++)
-	{
-		if (auto p = party[i].second.lock())
+	lambda->display_party_members_details = [this]()
 		{
-			print(std::to_string(i + 1) + ". ", 5);
-			p->display_info();
-			p->display_stats();
-		}
-	}
+			for (int i = 0; i < this->get_party_size(); i++)
+			{
+				if (auto p = this->party[i].second.lock())
+				{
+					print(std::to_string(i + 1) + ". ", 5);
+					p->display_info();
+					p->display_stats();
+				}
+			}
+		};
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda) : single_player(new_single_player)
+void Party::set_get_party_state()
+{
+	lambda->get_party_state = [this]()
+		{
+			return this->party_state;
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_take_gold()
+{
+	lambda->take_gold = [this](int index, int amount)
+		{
+			if (!in_range(index, 1, this->get_party_size()))
+				throw std::invalid_argument("invalid player index entered");
+
+			if (auto p = this->party[index - 1].second.lock())
+			{
+				if (amount > p->get_gold())
+					throw std::invalid_argument("not enough money to pay");
+
+				p->set_gold(p->get_gold() - amount);
+			}
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_give_gold()
+{
+	lambda->give_gold = [this](int index, int amount)
+		{
+			if (!in_range(index, 1, this->get_party_size()))
+				throw std::invalid_argument("invalid player index entered");
+
+			if (auto p = this->party[index - 1].second.lock())
+				p->set_gold(p->get_gold() + amount);
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_take_item()
+{
+	lambda->take_item = [this](int index, int item_id, int quantity)
+		{
+			if (!in_range(index, 1, this->get_party_size()))
+				throw std::invalid_argument("invalid player index entered");
+
+			if (auto p = this->party[index - 1].second.lock())
+			{
+				auto it = p->get_inventory().find(item_id);
+
+				if (it == p->get_inventory().end())
+					throw std::invalid_argument("item doesnt exist in players inventory");
+				
+				if (it->second.quantity < quantity)
+					throw std::invalid_argument("not enough items to sell");
+
+				p->remove_item_from_inventory(item_id, quantity);
+			}
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_give_item()
+{
+	lambda->give_item = [this](int index, int item_id, int quantity, const World_Inventory_Lambda& world_inventory_lambda)
+		{
+			if (!in_range(index, 1, this->get_party_size()))
+				throw std::invalid_argument("invalid player index entered");
+
+			if (auto p = this->party[index - 1].second.lock())
+			{
+				Owned_Items owned_items{world_inventory_lambda.get_item(item_id), quantity};
+				p->add_item_to_inventory(item_id, owned_items);
+			}
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_ask_index()
+{
+	lambda->ask_index = [this](const std::string& prompt)
+		{
+			while (true)
+			{
+				print(prompt, 5);
+				lambda->display_party_members_details();
+
+				int index = input<int>("your choice (-1 to exit) : ", 5);
+
+				if (in_range(index, 1, this->get_party_size()))
+				{
+					return index;
+				}
+				else if (index == -1)
+				{
+					print("going back\n", 5);
+					throw std::exception("user canceled");
+				}
+				else
+					print("invalid choice entered\n", 5);
+			}
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda) : single_player(new_single_player), lambda(std::make_unique<Party_Lambda>())
 {
 	set_party_size(1);
 	assign_party_members(entity_manager_lambda);
 	calculate_avg_level();
+	set_display_party_member_details();
+	set_get_party_state();
+	set_take_gold();
+	set_give_gold();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda, int new_party_size) : single_player(new_single_player)
+Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda, int new_party_size) : single_player(new_single_player), lambda(std::make_unique<Party_Lambda>())
 {
 	set_party_size(new_party_size);
 	assign_party_members(entity_manager_lambda);
 	calculate_avg_level();
+	set_display_party_member_details();
+	set_get_party_state();
+	set_take_gold();
+	set_give_gold();
 }

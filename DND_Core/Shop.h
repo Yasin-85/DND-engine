@@ -28,5 +28,7 @@ public:
 	//FUNCTIONS
 	void reset_shop_inventory();
 
+	void actual_shopping();
+
 	Shop(World_Inventory_Lambda& world_inventory_lambda);
 };

@@ -13,16 +13,11 @@
 #include "Quest_Manager.h"
 #include "Party.h"
 #include "Data_Base.h"
+#include "Shop.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool main_menu(World_Inventory& WI,
-	Entity_Manager& EM,
-	Rewards_Manager& RM,
-	Location_Manager& LM,
-	Quest_Manager& QM,
-	Data_Base& DB,
-	std::shared_ptr<Party> party);
+bool main_menu(Entity_Manager& EM, std::unique_ptr<Party>& party);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,8 +29,9 @@ int main(void)
 	Location_Manager LM;
 	Quest_Manager QM;
 	Data_Base DB;
+	Shop shop_vendor(*WI.lambda);
 
-	std::shared_ptr<Party> party;
+	std::unique_ptr<Party> party;
 
 	try
 	{
@@ -51,7 +47,7 @@ int main(void)
 	print("D&D Game Engine\n", 5);
 	print_line(5);
 
-	if (main_menu(WI, EM, RM, LM, QM, DB, party))
+	if (main_menu(EM, party))
 		return EXIT_SUCCESS;
 
 	return EXIT_SUCCESS;
@@ -59,13 +55,7 @@ int main(void)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool main_menu(World_Inventory& WI,
-	Entity_Manager& EM,
-	Rewards_Manager& RM,
-	Location_Manager& LM,
-	Quest_Manager& QM,
-	Data_Base& DB,
-	std::shared_ptr<Party> party)
+bool main_menu(Entity_Manager& EM, std::unique_ptr<Party>& party)
 {
 	int choice;
 
@@ -84,8 +74,8 @@ bool main_menu(World_Inventory& WI,
 			case 1:
 			{
 				party.reset();
-				party = std::make_shared<Party>(true, *EM.lambda);
-				party->display_party_member_details();
+				party = std::make_unique<Party>(true, *EM.lambda);
+				party->lambda->display_party_members_details();
 				return false;
 				break;
 			}
@@ -104,8 +94,8 @@ bool main_menu(World_Inventory& WI,
 					else
 						print("invalid player count entered\n");
 				}
-				party = std::make_shared<Party>(false, *EM.lambda, party_size);
-				party->display_party_member_details();
+				party = std::make_unique<Party>(false, *EM.lambda, party_size);
+				party->lambda->display_party_members_details();
 				return false;
 				break;
 			}

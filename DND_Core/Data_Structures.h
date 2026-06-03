@@ -46,6 +46,8 @@ struct Quest_Manager_Lambda;
 struct Location_Manager_Lambda;
 struct Entity_Manager_Lambda;
 struct Data_Base_Lambda;
+struct Party_Lambda;
+struct Shop_Lambda;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -138,6 +140,25 @@ struct Data_Base_Lambda
 	std::function<void(const Rewards&, int)> update_reward;
 	std::function<void(const Location&, int)> update_location;
 	std::function<void(const Quest&, int)> update_quest;
+};
+
+struct Party_Lambda
+{
+	std::function<void()> display_party_members_details;
+	std::function<const Party_State()> get_party_state;
+
+	std::function<void(int, int)> take_gold;
+	std::function<void(int, int)> give_gold;
+
+	std::function<void(int, int, int)> take_item;
+	std::function<void(int, int, int, const World_Inventory_Lambda&)> give_item;
+
+	std::function<int(std::string)> ask_index;
+};
+
+struct Shop_lambda
+{
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

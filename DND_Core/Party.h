@@ -8,6 +8,7 @@
 class Entity;
 class Rewards;
 
+struct Party_Lambda;
 struct Entity_Manager_Lambda;
 struct Data_Base_Lambda;
 
@@ -22,10 +23,12 @@ private:
 	int avg_level, party_size;
 
 public:
+	std::unique_ptr<Party_Lambda> lambda;
+
 	//PARTY GETTERS AND SETTERS
 	const std::array<std::pair<int, std::weak_ptr<Entity>>, 4>& get_party() const;
 	const std::array<std::pair<int, std::vector<std::weak_ptr<Rewards>>>, 4>& get_reward_buffer() const;
-	const Party_State& get_party_state() const;
+	const Party_State get_party_state() const;
 	const bool get_single_player() const;
 	const int get_avg_level() const;
 	const int get_party_size() const;
@@ -52,7 +55,19 @@ public:
 
 	void share_item(int from_index, int to_index, int item_id, int count);
 
-	void display_party_member_details();
+	void set_display_party_member_details();
+
+	void set_get_party_state();
+
+	void set_take_gold();
+
+	void set_give_gold();
+
+	void set_take_item();
+
+	void set_give_item();
+
+	void set_ask_index();
 
 	//CONSTRUCTOR
 	Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda);

@@ -56,11 +56,18 @@ void Shop::reset_shop_inventory()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Shop::actual_shopping()
+{
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Shop::Shop(World_Inventory_Lambda& world_inventory_lambda)
 {
 	const auto& world_inv = world_inventory_lambda.get_world_inventory();
 	for (const auto& [id, ptr] : world_inv) 
 	{
-		world_inventory_backup[id] = ptr;  // shared_ptr in to weak_ptr
+		world_inventory_backup[id] = ptr;  // shared_ptr to weak_ptr
 	}
 }
