@@ -234,28 +234,11 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 				{
 					print_line(5);
 
-					print("choose which player to equip item\n", 5);
-
-					lambda->display_party_members_details();
-
-					inner_choice = input<int>("your choice (-1 to exit) : ", 5);
-
-					if (in_range(inner_choice, 1, party_size))
+					inner_choice = lambda->ask_index("choose which player to equip item\n");
+					if (auto p = party[inner_choice - 1].second.lock())
 					{
-						if (auto p = party[inner_choice - 1].second.lock())
-						{
-							p->equip_item();
-						}
+						p->equip_item();
 					}
-					else if (inner_choice == -1)
-					{
-						print("going back\n", 5);
-						break;
-					}
-
-					else
-						print("invalid choice entered\n", 5);
-
 				}
 				break;
 
@@ -272,28 +255,8 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 
 					lambda->display_party_members_details();
 
-					inner_choice = input<int>("from player (-1 to exit) : ", 5);
-					if (inner_choice == -1)
-					{
-						print("going back\n", 5);
-						break;
-					}
-					if (!in_range(inner_choice, 1, get_party_size()))
-					{
-						throw std::invalid_argument("invalid player index entered");
-					}
-
-					inner_choice1 = input<int>("to player (-1 to exit) : ", 5);
-					if (inner_choice1 == -1)
-					{
-						print("going back\n", 5);
-						break;
-					}
-					if (!in_range(inner_choice1, 1, get_party_size()))
-					{
-						throw std::invalid_argument("invalid player index entered");
-					}
-
+					inner_choice = lambda->ask_index("from player\n");
+					inner_choice1 = lambda->ask_index("to player\n");
 					int amount = input<int>("the amount of gold to pass : ", 5);
 
 					share_gold(inner_choice - 1, inner_choice1 - 1, amount);
@@ -330,29 +293,10 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 
 					lambda->display_party_members_details();
 
-					inner_choice = input<int>("from player (-1 to exit) : ", 5);
-					if (inner_choice == -1)
-					{
-						print("going back\n", 5);
-						break;
-					}
-					if (!in_range(inner_choice, 1, get_party_size()))
-					{
-						throw std::invalid_argument("invalid player index entered");
-					}
+					inner_choice = lambda->ask_index("from player\n");
+					inner_choice1 = lambda->ask_index("to player\n");
 
-					inner_choice1 = input<int>("to player (-1 to exit) : ", 5);
-					if (inner_choice1 == -1)
-					{
-						print("going back\n", 5);
-						break;
-					}
-					if (!in_range(inner_choice1, 1, get_party_size()))
-					{
-						throw std::invalid_argument("invalid player index entered");
-					}
-
-					int item_id = input<int>("choose which item to give (its id) : ", 5);
+					int item_id = input<int>("choose which item to give (item's id) : ", 5);
 
 					if (auto p = party[inner_choice - 1].second.lock())
 						p->display_inventory();
@@ -621,6 +565,7 @@ Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambd
 	set_get_party_state();
 	set_take_gold();
 	set_give_gold();
+	set_ask_index();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -634,4 +579,5 @@ Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambd
 	set_get_party_state();
 	set_take_gold();
 	set_give_gold();
+	set_ask_index();
 }
