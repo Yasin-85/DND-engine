@@ -4,10 +4,11 @@
 #include <array>
 #include <unordered_map>
 
-#include <Data_Structures.h> //std::array being a bitch
+#include "Data_Structures.h" //std::array being a bitch
 
 class Item;
 
+struct Shop_Lambda;
 struct Owned_Items;
 struct World_Inventory_Lambda;
 struct Party_Lambda;
@@ -19,6 +20,8 @@ private:
 	std::unordered_map<int, std::weak_ptr<Item>> world_inventory_backup;
 
 public:
+	std::unique_ptr<Shop_Lambda> lambda;
+
 	//SHOP GETTERS AND SETTERS
 	const std::array<std::pair<int, Owned_Items>, 5>& get_shop_inventory() const;
 	const std::unordered_map<int, std::weak_ptr<Item>>& get_world_inventory_backup() const;
@@ -29,7 +32,9 @@ public:
 	//FUNCTIONS
 	void reset_shop_inventory();
 
-	void actual_shopping(int player_index, Party_Lambda& party_lambda);
+	void display_shop_inventory();
+
+	void set_actual_shopping();
 
 	Shop(World_Inventory_Lambda& world_inventory_lambda);
 };

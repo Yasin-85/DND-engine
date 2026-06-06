@@ -174,7 +174,7 @@ void Party::rest_heal()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda)
+void Party::party_resting(const Data_Base_Lambda& data_base_lambda, const Entity_Manager_Lambda& entity_manager_lambda, const Shop_Lambda& shop_lambda)
 {
 	set_party_state(Party_State::Resting);
 
@@ -243,7 +243,12 @@ void Party::party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lam
 				break;
 
 			case 3:
-				//add the shop bullshit stuff here
+			{
+				print_line(5);
+
+				int player_index = lambda->ask_index("choose which player is shopping");
+				shop_lambda.actual_shopping(player_index, *lambda);
+			}
 				break;
 
 			case 4:
@@ -464,7 +469,7 @@ void Party::set_take_gold()
 			if (auto p = this->party[index - 1].second.lock())
 			{
 				if (amount > p->get_gold())
-					throw std::invalid_argument("not enough money to pay");
+					throw std::invalid_argument("not enough gold");
 
 				p->set_gold(p->get_gold() - amount);
 			}
@@ -502,7 +507,7 @@ void Party::set_take_item()
 					throw std::invalid_argument("item doesnt exist in players inventory");
 				
 				if (it->second.quantity < quantity)
-					throw std::invalid_argument("not enough items to sell");
+					throw std::invalid_argument("not enough items");
 
 				p->remove_item_from_inventory(item_id, quantity);
 			}
@@ -513,14 +518,17 @@ void Party::set_take_item()
 
 void Party::set_give_item()
 {
-	lambda->give_item = [this](int index, int item_id, int quantity, const World_Inventory_Lambda& world_inventory_lambda)
+	lambda->give_item = [this](int index, int item_id, int quantity, std::weak_ptr<Item> item)
 		{
+			if (item.expired())
+				throw std::runtime_error("item no longer exists");
+
 			if (!in_range(index, 1, this->get_party_size()))
 				throw std::invalid_argument("invalid player index entered");
 
 			if (auto p = this->party[index - 1].second.lock())
 			{
-				Owned_Items owned_items{world_inventory_lambda.get_item(item_id), quantity};
+				Owned_Items owned_items{item, quantity};
 				p->add_item_to_inventory(item_id, owned_items);
 			}
 		};
@@ -560,7 +568,7 @@ void Party::set_display_party_member_inventory_and_details()
 {
 	lambda->display_party_member_inventory_and_details = [this](int index)
 		{
-			if (in_range(index, 1, get_party_size()))
+			if (!in_range(index, 1, get_party_size()))
 				throw std::runtime_error("out of range index entered");
 
 			if (auto p = this->party[index].second.lock())
@@ -582,6 +590,9 @@ Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambd
 	set_get_party_state();
 	set_take_gold();
 	set_give_gold();
+	set_take_item();
+	set_give_item();
+	set_display_party_member_inventory_and_details();
 	set_ask_index();
 }
 
@@ -596,5 +607,8 @@ Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambd
 	set_get_party_state();
 	set_take_gold();
 	set_give_gold();
+	set_take_item();
+	set_give_item();
+	set_display_party_member_inventory_and_details();
 	set_ask_index();
 }

@@ -151,15 +151,15 @@ struct Party_Lambda
 	std::function<void(int, int)> give_gold;
 
 	std::function<void(int, int, int)> take_item;
-	std::function<void(int, int, int, const World_Inventory_Lambda&)> give_item;
+	std::function<void(int, int, int, std::weak_ptr<Item>)> give_item;
 
 	std::function<int(std::string)> ask_index;
 	std::function<void(int)> display_party_member_inventory_and_details;
 };
 
-struct Shop_lambda
+struct Shop_Lambda
 {
-
+	std::function<void(int, const Party_Lambda&)> actual_shopping;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

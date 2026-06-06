@@ -10,6 +10,7 @@ class Rewards;
 
 struct Party_Lambda;
 struct Entity_Manager_Lambda;
+struct Shop_Lambda;
 struct Data_Base_Lambda;
 
 // PARTY
@@ -47,7 +48,7 @@ public:
 
 	void rest_heal();
 
-	void party_resting(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda);
+	void party_resting(const Data_Base_Lambda& data_base_lambda, const Entity_Manager_Lambda& entity_manager_lambda, const Shop_Lambda& shop_lambda);
 
 	void calculate_avg_level();
 

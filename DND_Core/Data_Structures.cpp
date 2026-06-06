@@ -83,7 +83,7 @@ void Item::set_level_requirement(int new_level_requirement) {}
 //ITEM FUNCTIONS
 void Item::display_details() const
 {
-	print(get_name() + ", " + get_type() + ", value : " + std::to_string(get_value()));
+	print(get_name() + ", " + get_type() + ", value : " + std::to_string(get_value()) + " gold");
 	(get_is_magical()) ? print(", is magical") : print(", isn't magical");
 }
 
