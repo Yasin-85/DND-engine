@@ -556,6 +556,23 @@ void Party::set_ask_index()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Party::set_display_party_member_inventory_and_details()
+{
+	lambda->display_party_member_inventory_and_details = [this](int index)
+		{
+			if (in_range(index, 1, get_party_size()))
+				throw std::runtime_error("out of range index entered");
+
+			if (auto p = this->party[index].second.lock())
+			{
+				p->display_info();
+				p->display_inventory();
+			}
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda) : single_player(new_single_player), lambda(std::make_unique<Party_Lambda>())
 {
 	set_party_size(1);

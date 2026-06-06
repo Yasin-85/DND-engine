@@ -69,6 +69,8 @@ public:
 
 	void set_ask_index();
 
+	void set_display_party_member_inventory_and_details();
+
 	//CONSTRUCTOR
 	Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambda);
 

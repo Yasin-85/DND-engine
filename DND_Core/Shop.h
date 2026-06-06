@@ -10,6 +10,7 @@ class Item;
 
 struct Owned_Items;
 struct World_Inventory_Lambda;
+struct Party_Lambda;
 
 class Shop
 {
@@ -28,7 +29,7 @@ public:
 	//FUNCTIONS
 	void reset_shop_inventory();
 
-	void actual_shopping();
+	void actual_shopping(int player_index, Party_Lambda& party_lambda);
 
 	Shop(World_Inventory_Lambda& world_inventory_lambda);
 };

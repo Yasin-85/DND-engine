@@ -56,9 +56,44 @@ void Shop::reset_shop_inventory()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Shop::actual_shopping()
+void Shop::actual_shopping(int player_index, Party_Lambda& party_lambda)
 {
+	while (true)
+	{
+		try
+		{
+			print_line(5);
 
+			print("welcome to my shop, my name is gokron what do u wish to do ?\n"
+				"1.buy stuff\n"
+				"2.sell stuff\n"
+				"3.exit\n"
+				"(careful, if you sell an item you cant buy it back)\n", 5);
+
+			int choice = input<int>("your choice : ", 5);
+
+			switch (choice)
+			{
+			case 1:
+				break;
+
+			case 2:
+				break;
+
+			case 3:
+				print("bye bye, come back later, i need your money to live :D\n", 5);
+				return;
+
+			default:
+				print("invalid choice entered\n", 5);
+				break;
+			}
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +101,7 @@ void Shop::actual_shopping()
 Shop::Shop(World_Inventory_Lambda& world_inventory_lambda)
 {
 	const auto& world_inv = world_inventory_lambda.get_world_inventory();
-	for (const auto& [id, ptr] : world_inv) 
+	for (const auto& [id, ptr] : world_inv)
 	{
 		world_inventory_backup[id] = ptr;  // shared_ptr to weak_ptr
 	}
