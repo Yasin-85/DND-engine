@@ -56,6 +56,10 @@ public:
 
 	void share_item(int from_index, int to_index, int item_id, int count);
 
+	void set_get_party();
+
+	void set_get_party_size();
+
 	void set_display_party_member_details();
 
 	void set_get_party_state();

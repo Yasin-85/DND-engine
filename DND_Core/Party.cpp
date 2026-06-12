@@ -431,6 +431,26 @@ void Party::share_item(int from_index, int to_index, int item_id, int count)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Party::set_get_party()
+{
+	lambda->get_party = [this]()
+		{
+			return this->party;
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Party::set_get_party_size()
+{
+	lambda->get_party_size = [this]()
+		{
+			return this->party_size;
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Party::set_display_party_member_details()
 {
 	lambda->display_party_members_details = [this]()
@@ -603,6 +623,8 @@ Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambd
 	set_party_size(new_party_size);
 	assign_party_members(entity_manager_lambda);
 	calculate_avg_level();
+	set_get_party();
+	set_get_party_size();
 	set_display_party_member_details();
 	set_get_party_state();
 	set_take_gold();

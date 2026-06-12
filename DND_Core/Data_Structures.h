@@ -18,6 +18,17 @@ class Quest;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct World_Inventory_Lambda;
+struct Rewards_Manager_Lambda;
+struct Quest_Manager_Lambda;
+struct Location_Manager_Lambda;
+struct Entity_Manager_Lambda;
+struct Data_Base_Lambda;
+struct Party_Lambda;
+struct Shop_Lambda;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //ATTRIBUTES
 struct Attributes
 {
@@ -35,19 +46,8 @@ struct Owned_Items
 struct Enemies
 {
 	std::weak_ptr<Entity> enemy_ptr;
-	int quantity;
+	int quantity{ 1 };
 };
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct World_Inventory_Lambda;
-struct Rewards_Manager_Lambda;
-struct Quest_Manager_Lambda;
-struct Location_Manager_Lambda;
-struct Entity_Manager_Lambda;
-struct Data_Base_Lambda;
-struct Party_Lambda;
-struct Shop_Lambda;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -144,6 +144,8 @@ struct Data_Base_Lambda
 
 struct Party_Lambda
 {
+	std::function<std::array<std::pair<int, std::weak_ptr<Entity>>, 4>()> get_party;
+	std::function<int()> get_party_size;
 	std::function<void()> display_party_members_details;
 	std::function<const Party_State()> get_party_state;
 
@@ -474,6 +476,8 @@ public:
 
 	Entity(std::string new_name, std::string new_background, std::string new_class_type, Attributes new_stats, int new_level, int new_xp, int new_max_hp, int new_current_hp, 
 		int new_max_mana, int new_current_mana, int new_armorclass, int new_gold, int new_current_location_id, bool new_is_player, bool new_is_dead);
+
+	Entity(const Entity&) = default;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -587,3 +591,35 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// BATTLE ENTITY
+class Battle_Entity
+{
+private:
+	//BATTLE ENTITY VARIABLES
+	int original_id;
+	int x_axis{ 0 }, y_axis{ 0 }, x_max{ 0 }, y_max{ 0 };
+	std::shared_ptr<Entity> entity;
+	bool is_party_member;
+
+public:
+	//BATTLE ENTITY GETTERS AND SETTERS
+	const int get_original_id() const;
+	const int get_x_axis() const;
+	const int get_y_axis() const;
+	const int get_x_max() const;
+	const int get_y_max() const;
+	const std::shared_ptr<Entity>& get_entity() const;
+	const bool get_is_party_member() const;
+
+	void set_original_id(int new_original_id);
+	void set_x_axis(int new_x_axis);
+	void set_y_axis(int new_y_axis);
+	void set_x_max(int new_x_max);
+	void set_y_max(int new_y_max);
+	void set_entity(std::weak_ptr<Entity> new_entity);
+	void set_is_party_member(bool new_is_party_member);
+
+	//CONSTRUCTOR
+	Battle_Entity(int new_original_id, std::weak_ptr<Entity> new_entity);
+};

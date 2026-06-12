@@ -1324,3 +1324,69 @@ Quest::Quest(std::string new_name, std::string new_description, std::string new_
 	set_quest_level(new_quest_level);
 	set_priority(new_priority);
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// BATTLE ENTITY
+
+//BATTLE ENTITY GETTERS AND SETTERS
+const int Battle_Entity::get_original_id() const { return original_id; }
+const int Battle_Entity::get_x_axis() const { return x_axis; }
+const int Battle_Entity::get_y_axis() const { return y_axis; }
+const int Battle_Entity::get_x_max() const { return x_max; }
+const int Battle_Entity::get_y_max() const { return y_max; }
+const std::shared_ptr<Entity>& Battle_Entity::get_entity() const { return entity; }
+const bool Battle_Entity::get_is_party_member() const { return is_party_member; }
+
+void Battle_Entity::set_original_id(int new_original_id) { original_id = new_original_id; }
+void Battle_Entity::set_x_axis(int new_x_axis)
+{
+	if (new_x_axis > x_max || new_x_axis < 0)
+		throw std::invalid_argument("invalid x_axis entered");
+
+	x_axis = new_x_axis;
+}
+void Battle_Entity::set_y_axis(int new_y_axis)
+{
+	if (new_y_axis > y_max || new_y_axis < 0)
+		throw std::invalid_argument("invalid y_axis entered");
+
+	y_axis = new_y_axis;
+}
+void Battle_Entity::set_x_max(int new_x_max) 
+{
+	if (new_x_max <= 0)
+		throw std::invalid_argument("invalid x_max enetered (positive only)");
+
+	x_max = new_x_max;
+}
+void Battle_Entity::set_y_max(int new_y_max)
+{
+	if (new_y_max <= 0)
+		throw std::invalid_argument("invalid y_max enetered (positive only)");
+
+	y_max = new_y_max;
+}
+void Battle_Entity::set_entity(std::weak_ptr<Entity> new_entity)
+{
+	if (auto p = new_entity.lock())
+	{
+		if (p->get_is_player())
+			entity = p;
+		
+		else
+			entity = std::make_shared<Entity>(*p);
+		
+	}
+	else
+		throw std::runtime_error("original entity no longer exists");
+	
+}
+void Battle_Entity::set_is_party_member(bool new_is_party_member) { is_party_member = new_is_party_member; }
+
+//CONSTRUCTOR
+Battle_Entity::Battle_Entity(int new_original_id, std::weak_ptr<Entity> new_entity) : original_id(new_original_id)
+{
+	set_entity(new_entity);
+	set_is_party_member(get_entity()->get_is_player());
+}
