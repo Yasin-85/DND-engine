@@ -1,6 +1,7 @@
 #include <memory>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 #include "Battle_Manager.h"
 #include "Enums.h"
@@ -11,7 +12,7 @@
 //BATTLE MANAGER GETTERS AND SETTERS
 
 const std::unordered_map<int, std::unique_ptr<Battle_Entity>>& Battle_Manager::get_battle_entities() const { return battle_entities; }
-const std::vector<int>& Battle_Manager::get_turn_ids() const { return turn_ids; }
+const std::vector<std::pair<int, int>>& Battle_Manager::get_turn_ids() const { return turn_ids; }
 const std::weak_ptr<Quest> Battle_Manager::get_active_quest() const { return active_quest; }
 const Battle_Type Battle_Manager::get_battle_type() const { return battle_type; }
 const int Battle_Manager::get_entity_count() const { return entity_count; }
@@ -25,7 +26,7 @@ void Battle_Manager::set_battle_entities(std::unordered_map<int, std::unique_ptr
 
 		battle_entities = new_battle_entities;
 }
-void Battle_Manager::set_turn_ids(std::vector<int>& new_turn_ids)
+void Battle_Manager::set_turn_ids(std::vector<std::pair<int, int>>& new_turn_ids)
 {
 	if (new_turn_ids.empty())
 		throw std::invalid_argument("turn ids cannot be empty");
@@ -69,7 +70,7 @@ void Battle_Manager::set_y_max(int new_y_max)
 
 void Battle_Manager::calculate_x_y_borders()
 {
-	int battlefield_size = std::ceil(std::sqrt(battle_entities.size())) * 3;
+	int battlefield_size = std::max(5, static_cast<int>(std::sqrt(entity_count * 1.5)) * 3);
 	set_x_max(battlefield_size);
 	set_y_max(battlefield_size);
 
@@ -82,7 +83,26 @@ void Battle_Manager::calculate_x_y_borders()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players, std::weak_ptr<Quest> new_active_quest, std::vector<int> new_entity_ids) : battle_type(new_battle_type)
+void Battle_Manager::roll_for_initiative()
+{
+	turn_ids.clear();
+
+	for (const auto& v : battle_entities)
+	{
+		int initiative_roll = dice_roll(20);
+		int dex_modifier = v.second->get_entity()->get_stat_modifier(v.second->get_entity()->get_stats().dex_);
+		int initiative = initiative_roll + dex_modifier;
+
+		turn_ids.push_back({ initiative, v.first });
+	}
+
+	std::sort(turn_ids.begin(), turn_ids.end(), [](const auto& a, const auto& b) {return a.first > b.first; });
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,
+	std::weak_ptr<Quest> new_active_quest, std::vector<std::pair<int, Enemies>> enemies) : battle_type(new_battle_type)
 {
 	for (int i = 0; i < players.size(); i++, entity_count++)
 	{
@@ -99,7 +119,7 @@ Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<st
 		{
 			for (const auto& v : p->get_enemies())
 			{
-				if (auto o = v.second.enemy_ptr.lock())
+				if (!v.second.enemy_ptr.expired())
 				{
 					for (int i = 0; i < v.second.quantity; i++, entity_count++)
 					{
@@ -112,8 +132,21 @@ Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<st
 		break;
 
 	case Battle_Type::Random_Encounter:
+	{
+		for (const auto& v : enemies)
+		{
+			if (!v.second.enemy_ptr.expired())
+			{
+				for (int i = 0; i < v.second.quantity; i++, entity_count++)
+				{
+					battle_entities[entity_count] = std::make_unique<Battle_Entity>(v.first, v.second.enemy_ptr);
+				}
+			}
+		}
+	}
 		break;
 	}
 
 	calculate_x_y_borders();
+	roll_for_initiative();
 }
