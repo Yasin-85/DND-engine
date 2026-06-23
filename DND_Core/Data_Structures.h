@@ -601,6 +601,7 @@ private:
 	int x_axis{ 0 }, y_axis{ 0 }, x_max{ 0 }, y_max{ 0 };
 	std::shared_ptr<Entity> entity;
 	bool is_party_member;
+	Battle_Entity_Status status{ Battle_Entity_Status::Alive };
 
 public:
 	//BATTLE ENTITY GETTERS AND SETTERS
@@ -611,6 +612,7 @@ public:
 	const int get_y_max() const;
 	const std::shared_ptr<Entity>& get_entity() const;
 	const bool get_is_party_member() const;
+	const Battle_Entity_Status get_status() const;
 
 	void set_original_id(int new_original_id);
 	void set_x_axis(int new_x_axis);
@@ -619,7 +621,10 @@ public:
 	void set_y_max(int new_y_max);
 	void set_entity(std::weak_ptr<Entity> new_entity);
 	void set_is_party_member(bool new_is_party_member);
+	void set_status(Battle_Entity_Status new_status);
 
 	//CONSTRUCTOR
 	Battle_Entity(int new_original_id, std::weak_ptr<Entity> new_entity);
+
+	Battle_Entity(const Battle_Entity&) = default;
 };

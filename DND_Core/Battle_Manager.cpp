@@ -24,7 +24,12 @@ void Battle_Manager::set_battle_entities(std::unordered_map<int, std::unique_ptr
 	if (new_battle_entities.empty())
 		throw std::invalid_argument("battle entities cannot be empty");
 
-		battle_entities = new_battle_entities;
+	battle_entities.clear();
+
+	for (const auto& v : new_battle_entities)
+	{
+		battle_entities[v.first] = std::make_unique<Battle_Entity>(*v.second);
+	}
 }
 void Battle_Manager::set_turn_ids(std::vector<std::pair<int, int>>& new_turn_ids)
 {
@@ -101,8 +106,88 @@ void Battle_Manager::roll_for_initiative()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool Battle_Manager::is_position_occupied(int x, int y)
+{
+	for (const auto& v : battle_entities)
+	{
+		if (v.second->get_x_axis() != x)
+			continue;
+
+		if (v.second->get_y_axis() != y)
+			continue;
+
+		return true;
+	}
+
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Battle_Manager::move_entity_position(int x, int y, int id)
+{
+	if (battle_entities.at(id)->get_x_axis() == x && battle_entities.at(id)->get_y_axis() == y)
+	{
+		print("you moved to the same place you are currently standing, brilliant work\n", 5);
+		return;
+	}
+
+	if (is_position_occupied(x, y))
+	{
+		print("someone is already standing there, find another spot to do whatever you are doing\n", 5);
+		return;
+	}
+
+	if (!in_range(x, 0, x_max - 1) || !in_range(y, 0, y_max - 1))
+	{
+		print("careful! you are going to desert the battle, are you sure ?\n", 5);
+
+		char choice;
+		do
+		{
+			choice = input<char>("(Y/N) : ", 5);
+
+			if (to_upper(choice) == 'N')
+			{
+				print("did not desert battle\n", 5);
+				return;
+			}
+			else if (to_upper(choice) == 'Y')
+			{
+				print("mmhm a desertion it is then, very well\n", 5);
+
+				battle_entities.at(id)->set_x_axis(x);
+				battle_entities.at(id)->set_y_axis(y);
+				battle_entities.at(id)->set_status(Battle_Entity_Status::Deserted);
+
+				print("moved character to position (" + std::to_string(x) + "," + std::to_string(y) + ") which causes a desertion in battle\n", 5);
+				return;
+			}
+			else
+			{
+				print("invalid choice entered\n", 5);
+			}
+
+		} while (to_upper(choice) != 'N' && to_upper(choice) != 'Y');
+	}
+
+	battle_entities.at(id)->set_x_axis(x);
+	battle_entities.at(id)->set_y_axis(y);
+
+	print("moved character to position (" + std::to_string(x) + "," + std::to_string(y) + ")\n");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Battle_Manager::entity_random_placement()
+{
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,
-	std::weak_ptr<Quest> new_active_quest, std::vector<std::pair<int, Enemies>> enemies) : battle_type(new_battle_type)
+	std::weak_ptr<Quest> new_active_quest, std::vector<std::pair<int, Enemies>> new_enemies) : battle_type(new_battle_type)
 {
 	for (int i = 0; i < players.size(); i++, entity_count++)
 	{
@@ -133,7 +218,7 @@ Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<st
 
 	case Battle_Type::Random_Encounter:
 	{
-		for (const auto& v : enemies)
+		for (const auto& v : new_enemies)
 		{
 			if (!v.second.enemy_ptr.expired())
 			{

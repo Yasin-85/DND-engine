@@ -8,9 +8,9 @@
 
 class Quest;
 class Entity;
+class Battle_Entity;
 
 struct Party_Lambda;
-struct Battle_Entity;
 struct Enemies;
 
 class Battle_Manager
@@ -44,6 +44,12 @@ public:
 	void calculate_x_y_borders();
 
 	void roll_for_initiative();
+
+	bool is_position_occupied(int x, int y);
+
+	void move_entity_position(int x, int y, int id);
+
+	void entity_random_placement();
 
 	//CONSTRUCTOR
 	Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,

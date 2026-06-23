@@ -17,10 +17,15 @@ enum class Sub_Container_Type
 
 enum class Party_State
 {
-	In_Battle, Battle_Won, Battle_Lost, Battle_Deserted, Resting, Party_Dead
+	Resting, Party_Dead
 };
 
 enum class Battle_Type
 {
 	Quest, Random_Encounter
+};
+
+enum class Battle_Entity_Status
+{
+	Alive, Dead, Deserted, Won, Lost
 };

@@ -1337,6 +1337,7 @@ const int Battle_Entity::get_x_max() const { return x_max; }
 const int Battle_Entity::get_y_max() const { return y_max; }
 const std::shared_ptr<Entity>& Battle_Entity::get_entity() const { return entity; }
 const bool Battle_Entity::get_is_party_member() const { return is_party_member; }
+const Battle_Entity_Status Battle_Entity::get_status() const { return status; }
 
 void Battle_Entity::set_original_id(int new_original_id) { original_id = new_original_id; }
 void Battle_Entity::set_x_axis(int new_x_axis)
@@ -1383,6 +1384,7 @@ void Battle_Entity::set_entity(std::weak_ptr<Entity> new_entity)
 	
 }
 void Battle_Entity::set_is_party_member(bool new_is_party_member) { is_party_member = new_is_party_member; }
+void Battle_Entity::set_status(Battle_Entity_Status new_status) { status = new_status; }
 
 //CONSTRUCTOR
 Battle_Entity::Battle_Entity(int new_original_id, std::weak_ptr<Entity> new_entity) : original_id(new_original_id)
