@@ -181,7 +181,78 @@ void Battle_Manager::move_entity_position(int x, int y, int id)
 
 void Battle_Manager::entity_random_placement()
 {
+	for (const auto& v : battle_entities)
+	{
+		try
+		{
+			int x, y, fall_back{ 0 }, segmant_height{ std::round(y_max / 3) };
 
+			if (v.second->get_is_party_member())
+			{
+				fall_back = 0;
+
+				do
+				{
+					fall_back++;
+					x = dice_roll(x_max) - 1;
+					y = dice_roll(segmant_height) - 1;
+
+					if (fall_back >= 100)
+					{
+						for (int j = 0; j < segmant_height; j++)
+						{
+							for (int i = 0; i < x_max; i++)
+							{
+								if (!is_position_occupied(i, j))
+								{
+									v.second->set_x_axis(i);
+									v.second->set_y_axis(j);
+									throw std::invalid_argument("");
+								}
+							}
+						}
+						throw std::runtime_error("too many player entities");
+					}
+				} while (is_position_occupied(x, y));
+
+				v.second->set_x_axis(x);
+				v.second->set_y_axis(y);
+			}
+			else
+			{
+				fall_back = 0;
+
+				do
+				{
+					fall_back++;
+					x = dice_roll(x_max) - 1;
+					y = dice_roll(segmant_height) - 1;
+
+					if (fall_back >= 100)
+					{
+						for (int j = 0; j < segmant_height; j++)
+						{
+							for (int i = 0; i < x_max; i++)
+							{
+								if (!is_position_occupied(i, y_max - j))
+								{
+									v.second->set_x_axis(i);
+									v.second->set_y_axis(y_max - j);
+									throw std::invalid_argument("");
+								}
+							}
+						}
+						throw std::runtime_error("too many enemy entities");
+					}
+
+				} while (is_position_occupied(x, y_max - y));
+
+				v.second->set_x_axis(x);
+				v.second->set_y_axis(y_max - y);
+			}
+		}
+		catch (const std::invalid_argument) {}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,24 +275,9 @@ Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<st
 		{
 			for (const auto& v : p->get_enemies())
 			{
-				if (!v.second.enemy_ptr.expired())
-				{
-					for (int i = 0; i < v.second.quantity; i++, entity_count++)
-					{
-						battle_entities[entity_count] = std::make_unique<Battle_Entity>(v.first, v.second.enemy_ptr);
-					}
-				}
-			}
-		}
-	}
-		break;
+				if (v.second.enemy_ptr.expired())
+					continue;
 
-	case Battle_Type::Random_Encounter:
-	{
-		for (const auto& v : new_enemies)
-		{
-			if (!v.second.enemy_ptr.expired())
-			{
 				for (int i = 0; i < v.second.quantity; i++, entity_count++)
 				{
 					battle_entities[entity_count] = std::make_unique<Battle_Entity>(v.first, v.second.enemy_ptr);
@@ -229,9 +285,25 @@ Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<st
 			}
 		}
 	}
-		break;
+	break;
+
+	case Battle_Type::Random_Encounter:
+	{
+		for (const auto& v : new_enemies)
+		{
+			if (v.second.enemy_ptr.expired())
+				continue;
+
+			for (int i = 0; i < v.second.quantity; i++, entity_count++)
+			{
+				battle_entities[entity_count] = std::make_unique<Battle_Entity>(v.first, v.second.enemy_ptr);
+			}
+		}
+	}
+	break;
 	}
 
 	calculate_x_y_borders();
 	roll_for_initiative();
+	entity_random_placement();
 }
