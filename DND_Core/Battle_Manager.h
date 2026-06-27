@@ -45,7 +45,11 @@ public:
 
 	void roll_for_initiative();
 
+	bool is_position_occupied(int x, int y, int &id);
+
 	bool is_position_occupied(int x, int y);
+
+	void print_battle_field();
 
 	void move_entity_position(int x, int y, int id);
 

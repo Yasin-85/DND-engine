@@ -1,4 +1,4 @@
-#include <memory>
+﻿#include <memory>
 #include <vector>
 #include <cmath>
 #include <algorithm>
@@ -106,6 +106,28 @@ void Battle_Manager::roll_for_initiative()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool Battle_Manager::is_position_occupied(int x, int y, int &id)
+{
+	for (const auto& v : battle_entities)
+	{
+		if (v.second->get_x_axis() != x)
+			continue;
+
+		if (v.second->get_y_axis() != y)
+			continue;
+
+		if (v.second->get_status() == Battle_Entity_Status::Dead)
+			continue;
+
+		id = v.first;
+		return true;
+	}
+
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Battle_Manager::is_position_occupied(int x, int y)
 {
 	for (const auto& v : battle_entities)
@@ -116,6 +138,9 @@ bool Battle_Manager::is_position_occupied(int x, int y)
 		if (v.second->get_y_axis() != y)
 			continue;
 
+		if (v.second->get_status() == Battle_Entity_Status::Dead)
+			continue;
+
 		return true;
 	}
 
@@ -124,17 +149,49 @@ bool Battle_Manager::is_position_occupied(int x, int y)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Battle_Manager::print_battle_field()
+{
+	print("every \033[32m@\033[0m represents a party member and every \033[31m#\033[0m represents an enemy\n");
+
+	for (int y = 0; y < y_max; y++)
+	{
+		for  (int x = 0; x < x_max; x++)
+		{
+			int id{ 0 };
+			if (is_position_occupied(x, y, id))
+			{
+				if (battle_entities.at(id)->get_is_party_member())
+					print("\033[32m@\033[0m "); // green @ for party members
+
+				else
+					print("\033[31m#\033[0m "); // red # for enemies
+			}
+			else
+				print("*");
+		}
+		print("\n");
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Battle_Manager::move_entity_position(int x, int y, int id)
 {
+	bool is_player = battle_entities.at(id)->get_is_party_member();
+
 	if (battle_entities.at(id)->get_x_axis() == x && battle_entities.at(id)->get_y_axis() == y)
 	{
-		print("you moved to the same place you are currently standing, brilliant work\n", 5);
+		if (is_player)
+			print("you moved to the same place you are currently standing, brilliant work\n", 5);
+
 		return;
 	}
 
 	if (is_position_occupied(x, y))
 	{
-		print("someone is already standing there, find another spot to do whatever you are doing\n", 5);
+		if (is_player)
+			print("someone is already standing there, find another spot to do whatever you are doing\n", 5);
+
 		return;
 	}
 
@@ -174,7 +231,7 @@ void Battle_Manager::move_entity_position(int x, int y, int id)
 	battle_entities.at(id)->set_x_axis(x);
 	battle_entities.at(id)->set_y_axis(y);
 
-	print("moved character to position (" + std::to_string(x) + "," + std::to_string(y) + ")\n");
+	print("moved character " + battle_entities.at(id)->get_entity()->get_name() + " to position (" + std::to_string(x) + "," + std::to_string(y) + ")\n");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,7 +242,8 @@ void Battle_Manager::entity_random_placement()
 	{
 		try
 		{
-			int x, y, fall_back{ 0 }, segmant_height{ std::round(y_max / 3) };
+			int x, y, fall_back{ 0 }; 
+			double segmant_height{ std::round(y_max / 3) };
 
 			if (v.second->get_is_party_member())
 			{
