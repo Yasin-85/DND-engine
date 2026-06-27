@@ -1342,14 +1342,14 @@ const Battle_Entity_Status Battle_Entity::get_status() const { return status; }
 void Battle_Entity::set_original_id(int new_original_id) { original_id = new_original_id; }
 void Battle_Entity::set_x_axis(int new_x_axis)
 {
-	if (new_x_axis > x_max || new_x_axis < 0)
+	if (new_x_axis >= x_max || new_x_axis < 0)
 		throw std::invalid_argument("invalid x_axis entered");
 
 	x_axis = new_x_axis;
 }
 void Battle_Entity::set_y_axis(int new_y_axis)
 {
-	if (new_y_axis > y_max || new_y_axis < 0)
+	if (new_y_axis >= y_max || new_y_axis < 0)
 		throw std::invalid_argument("invalid y_axis entered");
 
 	y_axis = new_y_axis;

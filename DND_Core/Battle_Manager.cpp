@@ -151,10 +151,20 @@ bool Battle_Manager::is_position_occupied(int x, int y)
 
 void Battle_Manager::print_battle_field()
 {
-	print("every \033[32m@\033[0m represents a party member and every \033[31m#\033[0m represents an enemy\n");
+	print_line(5);
 
-	for (int y = 0; y < y_max; y++)
+	print("every \033[32m@\033[0m represents a party member and every \033[31m#\033[0m represents an enemy\n", 5);
+
+	// Find max digit length for spacing
+	int max_digits = std::to_string(y_max - 1).length();
+
+	for (int y = y_max - 1; y >= 0; y--)
 	{
+		// print row number with proper padding
+		std::string y_str = std::to_string(y);
+		print(std::string(max_digits - y_str.length(), ' ') + y_str + " ");
+
+
 		for  (int x = 0; x < x_max; x++)
 		{
 			int id{ 0 };
@@ -167,9 +177,41 @@ void Battle_Manager::print_battle_field()
 					print("\033[31m#\033[0m "); // red # for enemies
 			}
 			else
-				print("*");
+				print("* ");
 		}
 		print("\n");
+	}
+
+	// print column numbers at the bottom
+	print(std::string(max_digits + 1, ' ')); // padding for row numbers
+	for (int x = 0; x < x_max; x++)
+	{
+		print(std::to_string(x) + " ");
+	}
+	print("\n");
+
+	print("\nparty members : \n", 5);
+
+	// printing party members locations on the battlefield 
+	for (const auto& v : battle_entities)
+	{
+		if (v.second->get_is_party_member())
+		{
+			print(std::to_string(v.first) + " " + v.second->get_entity()->get_name() +
+				" (" + std::to_string(v.second->get_x_axis()) + "," + std::to_string(v.second->get_y_axis()) + "), ");
+		}
+	}
+
+	print("\nenemies : \n", 5);
+
+	// printing enemy's locations on the battlefield 
+	for (const auto& v : battle_entities)
+	{
+		if (!v.second->get_is_party_member())
+		{
+			print(std::to_string(v.first) + " " + v.second->get_entity()->get_name() +
+				" (" + std::to_string(v.second->get_x_axis()) + "," + std::to_string(v.second->get_y_axis()) + "), ");
+		}
 	}
 }
 
