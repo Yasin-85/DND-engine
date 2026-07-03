@@ -27,5 +27,5 @@ enum class Battle_Type
 
 enum class Battle_Entity_Status
 {
-	Alive, Dead, Deserted, Won, Lost
+	Alive, Dead, Deserted, Won
 };

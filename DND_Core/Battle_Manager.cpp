@@ -106,6 +106,31 @@ void Battle_Manager::roll_for_initiative()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool Battle_Manager::is_battle_over()
+{
+	bool any_player_alive{ false }, any_enemy_alive{ false };
+
+	for (const auto& v : battle_entities)
+	{
+		if (v.second->get_status() != Battle_Entity_Status::Alive)
+			continue;
+
+		if (v.second->get_is_party_member())
+			any_player_alive = true;
+
+		else
+			any_enemy_alive = true;
+	}
+
+	if (any_player_alive || any_enemy_alive)
+		return false;
+
+	else
+		return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Battle_Manager::is_position_occupied(int x, int y, int &id)
 {
 	for (const auto& v : battle_entities)
@@ -353,6 +378,67 @@ void Battle_Manager::entity_random_placement()
 		}
 		catch (const std::invalid_argument) {}
 	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Battle_Manager::player_turn(int id)
+{
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Battle_Manager::enemy_turn(int id)
+{
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Battle_Manager::main_battle()
+{
+	print_battle_field();
+
+	while (!is_battle_over())
+	{
+		for (const auto& v : turn_ids) //.first is initiative roll and .second is the entity's id
+		{
+			int id = v.second;
+
+			if (is_battle_over())
+				break;
+
+			switch (battle_entities.at(id)->get_status())
+			{
+			case Battle_Entity_Status::Dead:
+				continue;
+				break;
+
+			case Battle_Entity_Status::Deserted:
+				continue;
+				break;
+
+			case Battle_Entity_Status::Alive:
+				if (battle_entities.at(id)->get_is_party_member())
+					player_turn(id);
+
+				else
+					enemy_turn(id);
+
+				break;
+			}
+		}
+	}
+
+	battle_end();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Battle_Manager::battle_end()
+{
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

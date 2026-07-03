@@ -45,6 +45,8 @@ public:
 
 	void roll_for_initiative();
 
+	bool is_battle_over();
+
 	bool is_position_occupied(int x, int y, int &id);
 
 	bool is_position_occupied(int x, int y);
@@ -54,6 +56,14 @@ public:
 	void move_entity_position(int x, int y, int id);
 
 	void entity_random_placement();
+
+	void player_turn(int id);
+
+	void enemy_turn(int id);
+
+	void main_battle();
+
+	void battle_end();
 
 	//CONSTRUCTOR
 	Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,
