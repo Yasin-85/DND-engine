@@ -56,7 +56,7 @@ void Shop::reset_shop_inventory()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Shop::display_shop_inventory()
+void Shop::display_shop_inventory(int charisma_stat)
 {
 	for (int i = 0; i < 5; i++)
 	{
@@ -65,7 +65,7 @@ void Shop::display_shop_inventory()
 			print(std::to_string(i + 1) + " ", 5);
 			p->display_details();
 			p->display_properties();
-			print("amount : " + std::to_string(shop_inventory[i].second.quantity) + '\n', 5);
+			print("amount : " + std::to_string(shop_inventory[i].second.quantity) + " cost with a discount : " + std::to_string(std::max(1, p->get_value() - charisma_stat * 3)), 5);
 		}
 	}
 }
@@ -85,7 +85,7 @@ void Shop::set_actual_shopping()
 					print("welcome to my shop, my name is gokron what do u wish to do ?\n"
 						"1.buy stuff\n"
 						"2.sell stuff\n"
-						"3.reset the shop, 10 gold cost\n"
+						"3.reset/restock the shop, 10 gold cost\n"
 						"4.exit\n"
 						"(careful, if you sell an item you cant buy it back)\n", 5);
 
@@ -99,7 +99,7 @@ void Shop::set_actual_shopping()
 
 						party_lambda.display_party_member_inventory_and_details(player_index);
 
-						this->display_shop_inventory();
+						this->display_shop_inventory(party_lambda.get_party_member_stats(player_index).cha_);
 
 						int item_index = input<int>("which item to buy : ", 5);
 						int amount = input<int>("amount to buy : ", 5);
@@ -110,14 +110,16 @@ void Shop::set_actual_shopping()
 						if (!in_range(amount, 1, this->shop_inventory[item_index].second.quantity))
 							throw std::invalid_argument("invalid amount entered");
 
-						this->shop_inventory[item_index - 1].second.quantity -= amount;
-
-						party_lambda.give_item(player_index, item_index, amount, this->shop_inventory[item_index - 1].second.item);
-
 						if (auto p = this->shop_inventory[item_index - 1].second.item.lock())
 						{
-							party_lambda.give_gold(player_index, p->get_value() * amount);
+							int discounted_price = std::max(1, p->get_value() - (party_lambda.get_party_member_stats(player_index).cha_ * 3));
+
+							party_lambda.take_gold(player_index, discounted_price * amount);
 						}
+
+						this->shop_inventory[item_index - 1].second.quantity -= amount;
+
+						party_lambda.give_item(player_index, this->shop_inventory[item_index - 1].first, amount, this->shop_inventory[item_index - 1].second.item);
 
 						print("BOUGHT! BOUGHT! BOUGHT!, enjoy your probably not useless item(s) and i will enjoy this money to pay off rent\n", 5);
 						party_lambda.display_party_member_inventory_and_details(player_index);
@@ -133,7 +135,12 @@ void Shop::set_actual_shopping()
 						int amount = input<int>("amount to sell : ", 5);
 
 						party_lambda.take_item(player_index, item_id, amount);
-						party_lambda.give_gold(player_index, this->get_world_inventory_backup().at(item_id).lock()->get_value() * amount);
+
+						if (auto p = this->get_world_inventory_backup().at(item_id).lock())
+							party_lambda.give_gold(player_index, p->get_value() * amount);
+
+						else
+							throw std::runtime_error("item expired");
 
 						print("SOLD! SOLD! SOLD!, enjoy your money and i will enjoy this/these item(s) that hopefully are not useless\n", 5);
 						party_lambda.display_party_member_inventory_and_details(player_index);

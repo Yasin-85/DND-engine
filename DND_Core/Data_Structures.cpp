@@ -881,7 +881,7 @@ int Entity::attack() const
 	else
 		throw std::out_of_range("no weapon equipped");
 
-	return damage;
+	return damage += get_stat_modifier(get_stats().str_);
 }
 
 void Entity::update_armor_class() {
@@ -927,7 +927,7 @@ int Entity::cast_spell(int id)
 				dirty = true;
 				print("no more spell scroll of " + p->get_name() + " exists in inventory\n");
 			}
-			return damage;
+			return damage += get_stat_modifier(get_stats().int_) + get_stat_modifier(get_stats().wis_);
 		}
 		else
 			throw std::exception("not enough mana to cast this spell");

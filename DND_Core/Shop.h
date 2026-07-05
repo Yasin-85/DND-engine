@@ -32,7 +32,7 @@ public:
 	//FUNCTIONS
 	void reset_shop_inventory();
 
-	void display_shop_inventory();
+	void display_shop_inventory(int charisma_stat = 0);
 
 	void set_actual_shopping();
 

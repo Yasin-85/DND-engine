@@ -58,6 +58,8 @@ public:
 
 	void set_get_party();
 
+	void set_get_party_member_stats();
+
 	void set_get_party_size();
 
 	void set_display_party_member_details();

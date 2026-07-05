@@ -441,6 +441,20 @@ void Party::set_get_party()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Party::set_get_party_member_stats()
+{
+	lambda->get_party_member_stats = [this](int index)
+		{
+			if (auto p = this->party.at(index).second.lock())
+				return p->get_stats();
+			
+			else
+				throw std::runtime_error("weak ptr failed");
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Party::set_get_party_size()
 {
 	lambda->get_party_size = [this]()
@@ -606,6 +620,9 @@ Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambd
 	set_party_size(1);
 	assign_party_members(entity_manager_lambda);
 	calculate_avg_level();
+	set_get_party();
+	set_get_party_member_stats();
+	set_get_party_size();
 	set_display_party_member_details();
 	set_get_party_state();
 	set_take_gold();
@@ -624,6 +641,7 @@ Party::Party(bool new_single_player, Entity_Manager_Lambda& entity_manager_lambd
 	assign_party_members(entity_manager_lambda);
 	calculate_avg_level();
 	set_get_party();
+	set_get_party_member_stats();
 	set_get_party_size();
 	set_display_party_member_details();
 	set_get_party_state();

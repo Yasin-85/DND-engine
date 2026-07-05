@@ -145,6 +145,7 @@ struct Data_Base_Lambda
 struct Party_Lambda
 {
 	std::function<std::array<std::pair<int, std::weak_ptr<Entity>>, 4>()> get_party;
+	std::function<Attributes(int)> get_party_member_stats;
 	std::function<int()> get_party_size;
 	std::function<void()> display_party_members_details;
 	std::function<const Party_State()> get_party_state;
