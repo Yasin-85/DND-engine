@@ -10,6 +10,11 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//function to throw an attack roll to see if its a hit or no
+bool is_it_a_hit(int target_ac, int str_modifier, int proficiency_bonus);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //function to check for id duplicates in an std::array used primarily in Party class
 void check_for_duplicates(std::array<int, 4> ids);
 

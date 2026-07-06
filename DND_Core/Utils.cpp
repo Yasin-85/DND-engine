@@ -11,6 +11,27 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool is_it_a_hit(int target_ac, int str_modifier, int proficiency_bonus)
+{
+	int roll = dice_roll(20);
+
+	if (roll == 20)
+		return true;
+
+	if (roll == 1)
+		return false;
+
+	roll += str_modifier + proficiency_bonus;
+
+	if (roll >= target_ac)
+		return true;
+
+	else
+		return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void check_for_duplicates(std::array<int, 4> ids)
 {
 	std::array<int, 4> copy = ids;

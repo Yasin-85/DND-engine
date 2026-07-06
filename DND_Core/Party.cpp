@@ -167,6 +167,7 @@ void Party::rest_heal()
 		{
 			p->set_current_hp(p->get_max_hp());
 			p->set_current_mana(p->get_max_mana());
+			p->set_is_dead(false);
 		}
 	}
 	print("Party fully healed!\n");

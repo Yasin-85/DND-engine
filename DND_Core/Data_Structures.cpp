@@ -372,7 +372,15 @@ void Entity::set_max_hp(int new_max_hp)
 void Entity::set_current_hp(int new_current_hp)
 {
 	if (new_current_hp <= get_max_hp())
+	{
+		if (new_current_hp <= 0)
+		{
+			current_hp = 0;
+			is_dead = true;
+		}
+
 		current_hp = new_current_hp;
+	}
 	else
 		throw std::invalid_argument("invalid current hp: must be less than or equal to max hp");
 
@@ -870,6 +878,7 @@ void Entity::level_up()
 int Entity::attack() const
 {
 	int damage{ 0 };
+
 	if (auto weapon = get_equipped_weapon().second.lock())
 	{
 		for (int i = 0; i < weapon->get_dmg_count(); i++)
@@ -879,7 +888,9 @@ int Entity::attack() const
 		damage += weapon->get_dmg_bonus();
 	}
 	else
-		throw std::out_of_range("no weapon equipped");
+	{
+		damage = 4;
+	}
 
 	return damage += get_stat_modifier(get_stats().str_);
 }

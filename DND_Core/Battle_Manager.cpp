@@ -298,7 +298,7 @@ void Battle_Manager::move_entity_position(int x, int y, int id)
 	battle_entities.at(id)->set_x_axis(x);
 	battle_entities.at(id)->set_y_axis(y);
 
-	print("moved character " + battle_entities.at(id)->get_entity()->get_name() + " to position (" + std::to_string(x) + "," + std::to_string(y) + ")\n");
+	print("character " + battle_entities.at(id)->get_entity()->get_name() + " moved to position (" + std::to_string(x) + "," + std::to_string(y) + ")\n");
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -391,7 +391,140 @@ void Battle_Manager::player_turn(int id)
 
 void Battle_Manager::enemy_turn(int id)
 {
+	int nearest_player_id{ -1 };
 
+	int x, y;
+	x = battle_entities.at(id)->get_x_axis();
+	y = battle_entities.at(id)->get_y_axis();
+
+	int player_x{ 0 }, player_y{ 0 };
+
+	float nearest_player_position{ FLT_MAX };
+
+	for (const auto& v : battle_entities)
+	{
+		if (!v.second->get_is_party_member())
+			continue;
+
+		player_x = v.second->get_x_axis();
+		player_y = v.second->get_y_axis();
+
+		float distnace = std::sqrt(std::pow(x - player_x, 2) + std::pow(y - player_y, 2));
+
+		if (distnace <= nearest_player_position)
+		{
+			nearest_player_id = v.first;
+			nearest_player_position = distnace;
+		}
+	}
+
+	if (nearest_player_id == -1)
+		return;
+
+	if (auto p = battle_entities.at(id)->get_entity()->get_equipped_weapon().second.lock()) // with weapon
+	{
+		if (nearest_player_position <= p->get_range())
+			goto attack;
+
+		else
+			goto move;
+
+	}
+	else // unarmed
+	{
+		if (nearest_player_position <= 1.5)
+			goto attack;
+
+		else
+			goto move;
+	}
+
+attack:
+	{
+		auto p = battle_entities.at(id)->get_entity();
+		auto o = battle_entities.at(nearest_player_id)->get_entity();
+
+		int player_ac = o->get_armorclass();
+
+		int str = p->get_stats().str_;
+		int str_modifier = p->get_stat_modifier(str);
+		int proficiency_bonus = p->get_proficiency_bonus(p->get_level());
+
+		if (is_it_a_hit(player_ac, str_modifier, proficiency_bonus))
+		{
+			int dmg = p->attack();
+			print(p->get_name() + " hit " + o->get_name() + " for " + std::to_string(dmg) + " damage\n", 5);
+			
+			o->set_current_hp(o->get_current_hp() - dmg);
+			o->display_info();
+			return;
+		}
+		else
+		{
+			print(p->get_name() + " missed a hit on " + o->get_name() + '\n', 5);
+			return;
+		}
+	}
+
+move:
+	{
+		int dx = x - player_x;
+		int dy = y - player_y;
+
+		int roll;
+
+		if (dx != 0 && dy != 0)
+		{
+			roll = dice_roll(2) - 1;
+
+			if (roll == 0)
+			{
+				if (!is_position_occupied(x, y - (dy / std::abs(dy))))
+					move_entity_position(x, y - (dy / std::abs(dy)), id);
+
+				else if (!is_position_occupied(x - (dx / std::abs(dx)), y))
+					move_entity_position(x - (dx / std::abs(dx)), y, id);
+
+				else
+					print("path blocked by other enemies\n", 5);
+					
+				return;
+			}
+			else
+			{
+				if (!is_position_occupied(x - (dx / std::abs(dx)), y))
+					move_entity_position(x - (dx / std::abs(dx)), y, id);
+
+				else if (!is_position_occupied(x, y - (dy / std::abs(dy))))
+					move_entity_position(x, y - (dy / std::abs(dy)), id);
+
+				else
+					print("path blocked by other enemies\n", 5);
+
+				return;
+			}
+		}
+		else if (dx == 0)
+		{
+			if (!is_position_occupied(x, y - (dy / std::abs(dy))))
+				move_entity_position(x, y - (dy / std::abs(dy)), id);
+
+			else
+				print("path blocked by other enemy\n", 5);
+
+			return;
+		}
+		else
+		{
+			if (!is_position_occupied(x - (dx / std::abs(dx)), y))
+				move_entity_position(x - (dx / std::abs(dx)), y, id);
+
+			else
+				print("path blocked by other enemy\n", 5);
+
+			return;
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -420,6 +553,9 @@ void Battle_Manager::main_battle()
 				break;
 
 			case Battle_Entity_Status::Alive:
+
+				print("its " + battle_entities.at(id)->get_entity()->get_name() + "'s turn\n", 5);
+
 				if (battle_entities.at(id)->get_is_party_member())
 					player_turn(id);
 
