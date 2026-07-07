@@ -526,6 +526,8 @@ void Entity::display_inventory()
 //EQUIP AND DE EQUIP
 void Entity::equip_item()
 {
+	display_inventory();
+
 	std::vector<int> items;
 	std::string choice = input<std::string>("please enter the name of the item of choice to equip : ");
 	int item_choice{ -1 }, i{ 1 };
@@ -1396,6 +1398,13 @@ void Battle_Entity::set_entity(std::weak_ptr<Entity> new_entity)
 }
 void Battle_Entity::set_is_party_member(bool new_is_party_member) { is_party_member = new_is_party_member; }
 void Battle_Entity::set_status(Battle_Entity_Status new_status) { status = new_status; }
+
+//FUNCTIONS
+void Battle_Entity::display_details()
+{
+	entity->display_info();
+	print("position on battlefield : (" + std::to_string(x_axis) + "," + std::to_string(y_axis) + ")", 5);
+}
 
 //CONSTRUCTOR
 Battle_Entity::Battle_Entity(int new_original_id, std::weak_ptr<Entity> new_entity) : original_id(new_original_id)

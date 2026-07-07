@@ -384,7 +384,186 @@ void Battle_Manager::entity_random_placement()
 
 void Battle_Manager::player_turn(int id)
 {
+	while (true)
+	{
+		try
+		{
+			print_line(5);
 
+			print("choose your action\n"
+				"1. move 1 tile (2 if dex > 14) <counts as an action>\n"
+				"2. cast a spell/attack an in range enemy <counts as an action>\n"
+				"3. use a consumable\n <counts as an action>"
+				"4. print the battle field\n"
+				"5. manage equipped weapons and armor\n"
+				"6. view party member's stats\n"
+				"7. view enemy's stats"
+				"8. skip turn\n", 5);
+
+			char choice = input<int>("your choice : ", 5);
+
+			switch (choice)
+			{
+			case 1: // move
+			{
+				print_line(5);
+
+				while (true)
+				{
+					int tiles_to_move = input<int>("tiles to move (1-2, -1: view battlefield, -2: cancel): ", 5);
+
+					// cancel
+					if (tiles_to_move == -2)
+						break;
+
+					// view battlefield (free action, stay in menu)
+					if (tiles_to_move == -1)
+					{
+						print_battle_field();
+						continue;
+					}
+
+					// validate tile count
+					if (tiles_to_move < 1 || tiles_to_move > 2)
+					{
+						print("invalid input\n", 5);
+						continue;
+					}
+
+					// check dex for 2-tile move
+					if (tiles_to_move == 2 && battle_entities.at(id)->get_entity()->get_stats().dex_ <= 14)
+					{
+						print("not enough dexterity for 2 tiles (need 15+)\n", 5);
+						continue;
+					}
+
+					// show current position
+					print("current position: (" + std::to_string(battle_entities.at(id)->get_x_axis()) + "," +
+						std::to_string(battle_entities.at(id)->get_y_axis()) + ")\n", 5);
+
+					// get movement direction
+					while (true)
+					{
+						char axis = input<char>("axis (x/y, b to cancel): ", 5);
+						axis = to_upper(axis);
+
+						if (axis == 'B')
+						{
+							print("movement cancelled\n", 5);
+							break;
+						}
+
+						if (axis != 'X' && axis != 'Y')
+						{
+							print("invalid axis\n", 5);
+							continue;
+						}
+
+						char direction = input<char>("direction (+/-): ", 5);
+						if (direction != '+' && direction != '-')
+						{
+							print("invalid direction\n", 5);
+							continue;
+						}
+
+						// calculate target position
+						int dx = 0, dy = 0;
+						int steps = tiles_to_move;
+						int current_x = battle_entities.at(id)->get_x_axis();
+						int current_y = battle_entities.at(id)->get_y_axis();
+
+						if (axis == 'X')
+							dx = (direction == '+') ? steps : -steps;
+						else
+							dy = (direction == '+') ? steps : -steps;
+
+						int target_x = current_x + dx;
+						int target_y = current_y + dy;
+
+						// check path for 2-tile movement (check the intermediate tile)
+						bool path_clear = true;
+						if (steps == 2)
+						{
+							int mid_x = current_x + (dx / 2);
+							int mid_y = current_y + (dy / 2);
+							if (is_position_occupied(mid_x, mid_y))
+							{
+								print("path blocked at intermediate tile\n", 5);
+								continue;
+							}
+						}
+
+						// check if destination is occupied
+						if (is_position_occupied(target_x, target_y))
+						{
+							print("destination occupied\n", 5);
+							continue;
+						}
+
+						// move the entity
+						move_entity_position(target_x, target_y, id);
+						return;
+					}
+				}
+				break;
+			}
+				
+			case 2:
+				break;
+
+			case 3:
+				break;
+
+			case 4:
+				print_battle_field();
+				break;
+
+			case 5:
+				print_line(5);
+
+				battle_entities.at(id)->get_entity()->equip_item();
+				break;
+
+			case 6:
+				print_line(5);
+
+				for (const auto& v : battle_entities)
+				{
+					if (!v.second->get_is_party_member())
+						continue;
+
+					print(std::to_string(v.first) + " ");
+					v.second->display_details();
+				}
+				break;
+
+			case 7:
+				print_line(5);
+
+				for (const auto& v : battle_entities)
+				{
+					if (v.second->get_is_party_member())
+						continue;
+
+					print(std::to_string(v.first) + " ");
+					v.second->display_details();
+				}
+				break;
+
+			case 8:
+				print("turn skipped\n", 5);
+				return;
+
+			default:
+				print("invalid choice entered\n", 5);
+				break;
+			}
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -441,8 +620,8 @@ void Battle_Manager::enemy_turn(int id)
 
 attack:
 	{
-		auto p = battle_entities.at(id)->get_entity();
-		auto o = battle_entities.at(nearest_player_id)->get_entity();
+		auto p = battle_entities.at(id)->get_entity(); //enemy aka the one who's turn it is
+		auto o = battle_entities.at(nearest_player_id)->get_entity(); //chosen player
 
 		int player_ac = o->get_armorclass();
 
@@ -486,7 +665,7 @@ move:
 					move_entity_position(x - (dx / std::abs(dx)), y, id);
 
 				else
-					print("path blocked by other enemies\n", 5);
+					print("path blocked\n", 5);
 					
 				return;
 			}
@@ -499,7 +678,7 @@ move:
 					move_entity_position(x, y - (dy / std::abs(dy)), id);
 
 				else
-					print("path blocked by other enemies\n", 5);
+					print("path blocked\n", 5);
 
 				return;
 			}
@@ -510,7 +689,7 @@ move:
 				move_entity_position(x, y - (dy / std::abs(dy)), id);
 
 			else
-				print("path blocked by other enemy\n", 5);
+				print("path blocked\n", 5);
 
 			return;
 		}
@@ -520,7 +699,7 @@ move:
 				move_entity_position(x - (dx / std::abs(dx)), y, id);
 
 			else
-				print("path blocked by other enemy\n", 5);
+				print("path blocked\n", 5);
 
 			return;
 		}

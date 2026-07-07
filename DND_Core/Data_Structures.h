@@ -624,6 +624,9 @@ public:
 	void set_is_party_member(bool new_is_party_member);
 	void set_status(Battle_Entity_Status new_status);
 
+	//FUNCTIONS
+	void display_details();
+
 	//CONSTRUCTOR
 	Battle_Entity(int new_original_id, std::weak_ptr<Entity> new_entity);
 

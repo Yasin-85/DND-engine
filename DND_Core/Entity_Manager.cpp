@@ -563,7 +563,6 @@ void Entity_Manager::update_entity(const World_Inventory_Lambda& world_inventory
 					print_line();
 					if (!entity_manager.at(id)->get_inventory().empty())
 					{
-						entity_manager.at(id)->display_inventory();
 						entity_manager.at(id)->equip_item();
 					}
 					else
