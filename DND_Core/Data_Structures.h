@@ -26,6 +26,7 @@ struct Entity_Manager_Lambda;
 struct Data_Base_Lambda;
 struct Party_Lambda;
 struct Shop_Lambda;
+struct Battle_Manager_Lambda;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,6 +164,11 @@ struct Party_Lambda
 struct Shop_Lambda
 {
 	std::function<void(int, const Party_Lambda&)> actual_shopping;
+};
+
+struct Battle_Manager_Lambda
+{
+	std::function<void()> print_battle_field;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

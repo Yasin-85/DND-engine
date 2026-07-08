@@ -131,7 +131,7 @@ bool Battle_Manager::is_battle_over()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Battle_Manager::is_position_occupied(int x, int y, int &id)
+bool Battle_Manager::is_position_occupied(int x, int y, int& id)
 {
 	for (const auto& v : battle_entities)
 	{
@@ -174,70 +174,73 @@ bool Battle_Manager::is_position_occupied(int x, int y)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Battle_Manager::print_battle_field()
+void Battle_Manager::set_print_battle_field()
 {
-	print_line(5);
-
-	print("every \033[32m@\033[0m represents a party member and every \033[31m#\033[0m represents an enemy\n", 5);
-
-	// Find max digit length for spacing
-	int max_digits = std::to_string(y_max - 1).length();
-
-	for (int y = y_max - 1; y >= 0; y--)
-	{
-		// print row number with proper padding
-		std::string y_str = std::to_string(y);
-		print(std::string(max_digits - y_str.length(), ' ') + y_str + " ");
-
-
-		for  (int x = 0; x < x_max; x++)
+	lambda->print_battle_field = [this]()
 		{
-			int id{ 0 };
-			if (is_position_occupied(x, y, id))
+			print_line(5);
+
+			print("every \033[32m@\033[0m represents a party member and every \033[31m#\033[0m represents an enemy\n", 5);
+
+			// Find max digit length for spacing
+			int max_digits = std::to_string(y_max - 1).length();
+
+			for (int y = y_max - 1; y >= 0; y--)
 			{
-				if (battle_entities.at(id)->get_is_party_member())
-					print("\033[32m@\033[0m "); // green @ for party members
+				// print row number with proper padding
+				std::string y_str = std::to_string(y);
+				print(std::string(max_digits - y_str.length(), ' ') + y_str + " ");
 
-				else
-					print("\033[31m#\033[0m "); // red # for enemies
+
+				for (int x = 0; x < x_max; x++)
+				{
+					int id{ 0 };
+					if (is_position_occupied(x, y, id))
+					{
+						if (battle_entities.at(id)->get_is_party_member())
+							print("\033[32m@\033[0m "); // green @ for party members
+
+						else
+							print("\033[31m#\033[0m "); // red # for enemies
+					}
+					else
+						print("* ");
+				}
+				print("\n");
 			}
-			else
-				print("* ");
-		}
-		print("\n");
-	}
 
-	// print column numbers at the bottom
-	print(std::string(max_digits + 1, ' ')); // padding for row numbers
-	for (int x = 0; x < x_max; x++)
-	{
-		print(std::to_string(x) + " ");
-	}
-	print("\n");
+			// print column numbers at the bottom
+			print(std::string(max_digits + 1, ' ')); // padding for row numbers
+			for (int x = 0; x < x_max; x++)
+			{
+				print(std::to_string(x) + " ");
+			}
+			print("\n");
 
-	print("\nparty members : \n", 5);
+			print("\nparty members : \n", 5);
 
-	// printing party members locations on the battlefield 
-	for (const auto& v : battle_entities)
-	{
-		if (v.second->get_is_party_member())
-		{
-			print(std::to_string(v.first) + " " + v.second->get_entity()->get_name() +
-				" (" + std::to_string(v.second->get_x_axis()) + "," + std::to_string(v.second->get_y_axis()) + "), ");
-		}
-	}
+			// printing party members locations on the battlefield 
+			for (const auto& v : battle_entities)
+			{
+				if (v.second->get_is_party_member())
+				{
+					print(std::to_string(v.first) + " " + v.second->get_entity()->get_name() +
+						" (" + std::to_string(v.second->get_x_axis()) + "," + std::to_string(v.second->get_y_axis()) + "), ");
+				}
+			}
 
-	print("\nenemies : \n", 5);
+			print("\nenemies : \n", 5);
 
-	// printing enemy's locations on the battlefield 
-	for (const auto& v : battle_entities)
-	{
-		if (!v.second->get_is_party_member())
-		{
-			print(std::to_string(v.first) + " " + v.second->get_entity()->get_name() +
-				" (" + std::to_string(v.second->get_x_axis()) + "," + std::to_string(v.second->get_y_axis()) + "), ");
-		}
-	}
+			// printing enemy's locations on the battlefield 
+			for (const auto& v : battle_entities)
+			{
+				if (!v.second->get_is_party_member())
+				{
+					print(std::to_string(v.first) + " " + v.second->get_entity()->get_name() +
+						" (" + std::to_string(v.second->get_x_axis()) + "," + std::to_string(v.second->get_y_axis()) + "), ");
+				}
+			}
+		};
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,7 +312,7 @@ void Battle_Manager::entity_random_placement()
 	{
 		try
 		{
-			int x, y, fall_back{ 0 }; 
+			int x, y, fall_back{ 0 };
 			double segmant_height{ std::round(y_max / 3) };
 
 			if (v.second->get_is_party_member())
@@ -419,7 +422,7 @@ void Battle_Manager::player_turn(int id)
 					// view battlefield (free action, stay in menu)
 					if (tiles_to_move == -1)
 					{
-						print_battle_field();
+						lambda->print_battle_field();
 						continue;
 					}
 
@@ -507,15 +510,110 @@ void Battle_Manager::player_turn(int id)
 				}
 				break;
 			}
-				
-			case 2:
-				break;
+
+			case 2: // cast a spell/attack
+			{
+				print_line(5);
+
+				print("please enter the id of the person you wish to attack (friendly fire enabled)\n", 5);
+
+				int target_id = ask_id(battle_entities, false, lambda->print_battle_field);
+
+				int attack_type;
+
+				do
+				{
+					attack_type = input<int>("1. attack with equipped weapon \n2. cast a spell \n3. cancel \nyour choice : ");
+
+					if (!in_range(attack_type, 1, 3))
+						print("invalid choice entered\n", 5);
+
+				} while (!in_range(attack_type, 1, 3));
+
+				switch (attack_type)
+				{
+				case 1:
+				{
+					auto p = battle_entities.at(id)->get_entity(); //player aka the one who's turn it is
+					auto o = battle_entities.at(target_id)->get_entity(); //chosen enemy
+
+					int enemy_ac = o->get_armorclass();
+
+					int str = p->get_stats().str_;
+					int str_modifier = p->get_stat_modifier(str);
+					int proficiency_bonus = p->get_proficiency_bonus(p->get_level());
+
+					if (is_it_a_hit(enemy_ac, str_modifier, proficiency_bonus))
+					{
+						int dmg = p->attack();
+						print(p->get_name() + " hit " + o->get_name() + " for " + std::to_string(dmg) + " damage\n", 5);
+
+						o->set_current_hp(o->get_current_hp() - dmg);
+						o->display_info();
+						return;
+					}
+					else
+					{
+						print(p->get_name() + " missed a hit on " + o->get_name() + '\n', 5);
+						return;
+					}
+				}
+					break;
+
+				case 2:
+				{
+					auto p = battle_entities.at(id)->get_entity(); //player aka the one who's turn it is
+					auto o = battle_entities.at(target_id)->get_entity(); //chosen enemy
+
+					int enemy_ac = o->get_armorclass();
+
+					int str = p->get_stats().str_;
+					int str_modifier = p->get_stat_modifier(str);
+					int proficiency_bonus = p->get_proficiency_bonus(p->get_level());
+
+					print("please enter the id of the chosen spell\n", 5);
+					int spell_id = ask_id(p->get_inventory(), false, [&p]() {p->display_inventory(); });
+
+					if (is_it_a_hit(enemy_ac, str_modifier, proficiency_bonus))
+					{
+						int dmg = p->cast_spell(spell_id);
+						print(p->get_name() + " hit " + o->get_name() + " for " + std::to_string(dmg) + " damage\n", 5);
+
+						o->set_current_hp(o->get_current_hp() - dmg);
+						o->display_info();
+						return;
+					}
+					else
+					{
+						print(p->get_name() + " missed a hit on " + o->get_name() + '\n', 5);
+						return;
+					}
+				}
+					break;
+
+				case 3:
+					print("going back\n", 5);
+					break;
+				}
+			}
+			break;
 
 			case 3:
+			{
+				print_line(5);
+
+				auto p = battle_entities.at(id)->get_entity();
+
+				print("please enter the consumable id\n", 5);
+				int consumable_id = ask_id(p->get_inventory(), false, [&p]() {p->display_inventory(); });
+
+				p->use_consumable(consumable_id);
+				return;
+			}
 				break;
 
 			case 4:
-				print_battle_field();
+				lambda->print_battle_field();
 				break;
 
 			case 5:
@@ -633,7 +731,7 @@ attack:
 		{
 			int dmg = p->attack();
 			print(p->get_name() + " hit " + o->get_name() + " for " + std::to_string(dmg) + " damage\n", 5);
-			
+
 			o->set_current_hp(o->get_current_hp() - dmg);
 			o->display_info();
 			return;
@@ -666,7 +764,7 @@ move:
 
 				else
 					print("path blocked\n", 5);
-					
+
 				return;
 			}
 			else
@@ -710,7 +808,7 @@ move:
 
 void Battle_Manager::main_battle()
 {
-	print_battle_field();
+	lambda->print_battle_field();
 
 	while (!is_battle_over())
 	{
@@ -759,7 +857,7 @@ void Battle_Manager::battle_end()
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,
-	std::weak_ptr<Quest> new_active_quest, std::vector<std::pair<int, Enemies>> new_enemies) : battle_type(new_battle_type)
+	std::weak_ptr<Quest> new_active_quest, std::vector<std::pair<int, Enemies>> new_enemies) : lambda(std::make_unique<Battle_Manager_Lambda>()), battle_type(new_battle_type)
 {
 	for (int i = 0; i < players.size(); i++, entity_count++)
 	{

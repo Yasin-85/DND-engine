@@ -924,6 +924,9 @@ int Entity::cast_spell(int id)
 	int damage{ 0 };
 	if (auto p = character_inventory.at(id).item.lock())
 	{
+		if (p->child_type() != Item_Type::Spell_Scroll)
+			throw std::invalid_argument("invalid id entered (not a spell)");
+
 		if (p->get_mana_cost() <= get_current_mana())
 		{
 			for (int i = 0; i < p->get_dmg_count(); i++)
@@ -953,6 +956,9 @@ void Entity::use_consumable(int id)
 {
 	if (auto p = character_inventory.at(id).item.lock())
 	{
+		if (p->child_type() != Item_Type::Consumable)
+			throw std::invalid_argument("invalid id entered (not a consumable)");
+
 		if (p->get_level_requirement() <= get_level())
 		{
 			if (get_current_mana() == 0 && p->get_mana_restore() < 0)

@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <functional>
 
 #include "Enums.h"
 
@@ -12,6 +13,7 @@ class Battle_Entity;
 
 struct Party_Lambda;
 struct Enemies;
+struct Battle_Manager_Lambda;
 
 class Battle_Manager
 {
@@ -23,6 +25,8 @@ private:
 	int entity_count{ 1 }, x_max, y_max;
 
 public:
+	std::unique_ptr<Battle_Manager_Lambda> lambda;
+
 	//BATTLE MANAGER GETTERS AND SETTERS
 	const std::unordered_map<int, std::unique_ptr<Battle_Entity>>& get_battle_entities() const;
 	const std::vector<std::pair<int, int>>& get_turn_ids() const;
@@ -51,7 +55,7 @@ public:
 
 	bool is_position_occupied(int x, int y);
 
-	void print_battle_field();
+	void set_print_battle_field();
 
 	void move_entity_position(int x, int y, int id);
 
