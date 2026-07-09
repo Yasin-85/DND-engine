@@ -14,7 +14,7 @@ const std::array<std::pair<int, std::weak_ptr<Entity>>, 4>& Party::get_party() c
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const std::array<std::pair<int, std::vector<std::weak_ptr<Rewards>>>, 4>& Party::get_reward_buffer() const { return reward_buffer; }
+const std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4>& Party::get_reward_buffer() const { return reward_buffer; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -38,7 +38,7 @@ void Party::set_party(std::array<std::pair<int, std::weak_ptr<Entity>>, 4>& new_
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Party::set_reward_buffer(std::array<std::pair<int, std::vector<std::weak_ptr<Rewards>>>, 4>& new_reward_buffer) { reward_buffer = new_reward_buffer; }
+void Party::set_reward_buffer(std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4>& new_reward_buffer) { reward_buffer = new_reward_buffer; }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,16 +139,15 @@ void Party::assign_member_rewards(Data_Base_Lambda& data_base_lambda, Entity_Man
 		{
 			for (const auto& v : reward_buffer[i].second) // iterate through reward vector for the selected player
 			{
-				if (auto o = v.lock()) // check for reward's existance
-				{
-					p->gain_xp(o->get_xp());
-					p->gain_gold(o->get_gold());
 
-					for (const auto& [item_id, owned_item] : o->get_reward_item_pointers()) // iterate through item pointer map for the selected reward
-					{
-						p->add_item_to_inventory(item_id, owned_item);
-					}
+				p->gain_xp(v->get_xp());
+				p->gain_gold(v->get_gold());
+
+				for (const auto& [item_id, owned_item] : v->get_reward_item_pointers()) // iterate through item pointer map for the selected reward
+				{
+					p->add_item_to_inventory(item_id, owned_item);
 				}
+
 			}
 		}
 	}
@@ -159,11 +158,11 @@ void Party::assign_member_rewards(Data_Base_Lambda& data_base_lambda, Entity_Man
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Party::rest_heal() 
+void Party::rest_heal()
 {
-	for (int i = 0; i < get_party_size(); i++) 
+	for (int i = 0; i < get_party_size(); i++)
 	{
-		if (auto p = party[i].second.lock()) 
+		if (auto p = party[i].second.lock())
 		{
 			p->set_current_hp(p->get_max_hp());
 			p->set_current_mana(p->get_max_mana());
@@ -204,7 +203,8 @@ void Party::party_resting(const Data_Base_Lambda& data_base_lambda, const Entity
 	rest_heal();
 
 	while (true)
-	{;
+	{
+		;
 
 		try
 		{
@@ -250,7 +250,7 @@ void Party::party_resting(const Data_Base_Lambda& data_base_lambda, const Entity
 				int player_index = lambda->ask_index("choose which player is shopping");
 				shop_lambda.actual_shopping(player_index, *lambda);
 			}
-				break;
+			break;
 
 			case 4:
 				while (true)
@@ -310,7 +310,7 @@ void Party::party_resting(const Data_Base_Lambda& data_base_lambda, const Entity
 					int amount = input<int>("the amount of items to pass : ");
 
 					share_item(inner_choice - 1, inner_choice1 - 1, item_id, amount);
-					
+
 					if (inner_choice == inner_choice1)
 					{
 						if (auto p = party[inner_choice - 1].second.lock())
@@ -448,7 +448,7 @@ void Party::set_get_party_member_stats()
 		{
 			if (auto p = this->party.at(index).second.lock())
 				return p->get_stats();
-			
+
 			else
 				throw std::runtime_error("weak ptr failed");
 		};
@@ -540,7 +540,7 @@ void Party::set_take_item()
 
 				if (it == p->get_inventory().end())
 					throw std::invalid_argument("item doesnt exist in players inventory");
-				
+
 				if (it->second.quantity < quantity)
 					throw std::invalid_argument("not enough items");
 
@@ -563,7 +563,7 @@ void Party::set_give_item()
 
 			if (auto p = this->party[index - 1].second.lock())
 			{
-				Owned_Items owned_items{item, quantity};
+				Owned_Items owned_items{ item, quantity };
 				p->add_item_to_inventory(item_id, owned_items);
 			}
 		};

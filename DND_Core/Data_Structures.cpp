@@ -478,6 +478,42 @@ int Entity::get_proficiency_bonus(int new_level) const
 	return 0;
 }
 
+int Entity::get_stat_modifier(int stat_value) const
+{
+	return (stat_value - 10) / 2;
+}
+
+Rewards Entity::drop_reward() const
+{
+	float percentage = (dice_roll(3) + 1) / 5;
+
+	int reward_gold = std::floor(get_gold() * percentage);
+	int reward_xp = std::floor((get_xp() / 5) * percentage);
+
+	std::unordered_map<int, Owned_Items> reward_item_pointers;
+
+	for (const auto& v : get_inventory())
+	{
+		int value;
+
+		if (auto p = v.second.item.lock())
+			value = p->get_value();
+
+		else
+			continue;
+
+		int roll = dice_roll(std::floor(value / 4));
+
+		if (roll == std::floor(value / 4))
+			reward_item_pointers[v.first] = v.second;
+		
+		else
+			continue;
+	}
+
+	return Rewards(reward_gold, reward_xp, reward_item_pointers);
+}
+
 //DISPLAYS
 void Entity::display_stats() const
 {
@@ -902,7 +938,7 @@ void Entity::update_armor_class() {
 	int dex = get_stats().dex_;
 	int dex_mod = (dex - 10) / 2;  // D&D standard
 
-	if (auto p = get_equipped_armor().second.lock()) 
+	if (auto p = get_equipped_armor().second.lock())
 	{
 		// Armor equipped
 		new_ac = p->get_armor_class();
@@ -911,7 +947,7 @@ void Entity::update_armor_class() {
 		if (dex_bonus > 0)
 			new_ac += std::min(dex_mod, dex_bonus);  // Cap at max dex bonus
 	}
-	else 
+	else
 	{
 		// No armor equipped
 		new_ac = 10 + dex_mod;
@@ -1006,9 +1042,10 @@ void Entity::update_death()
 
 //CONSTRUCTOR
 Entity::Entity(std::string new_name, std::string new_background, std::string new_class_type, Attributes new_stats, bool new_is_player)
-	: name(new_name), background(new_background), class_type(new_class_type), stats(new_stats), is_player(new_is_player) {}
+	: name(new_name), background(new_background), class_type(new_class_type), stats(new_stats), is_player(new_is_player) {
+}
 
-Entity::Entity(std::string new_name, std::string new_background, std::string new_class_type, Attributes new_stats, int new_level, int new_xp, int new_max_hp, int new_current_hp, 
+Entity::Entity(std::string new_name, std::string new_background, std::string new_class_type, Attributes new_stats, int new_level, int new_xp, int new_max_hp, int new_current_hp,
 	int new_max_mana, int new_current_mana, int new_armorclass, int new_gold, int new_current_location_id, bool new_is_player, bool new_is_dead)
 	: name(new_name), background(new_background), class_type(new_class_type), stats(new_stats), is_player(new_is_player)
 {
@@ -1127,6 +1164,11 @@ Rewards::Rewards(int new_gold, int new_xp)
 	set_xp(new_xp);
 }
 
+Rewards::Rewards(int new_gold, int new_xp, std::unordered_map<int, Owned_Items> new_reward_item_pointers) : Rewards(new_gold, new_xp)
+{
+	set_reward_item_pointers(new_reward_item_pointers);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // LOCATION
@@ -1242,7 +1284,7 @@ void Quest::set_priority(int new_priority)
 		throw std::invalid_argument("invalid quest priority entered (positive only)");
 }
 void Quest::set_reward(std::weak_ptr<Rewards> new_reward) { reward = new_reward; }
-void Quest::remove_reward() 
+void Quest::remove_reward()
 {
 	reward = std::weak_ptr<Rewards>{};
 	print("reward deleted\n");
@@ -1373,7 +1415,7 @@ void Battle_Entity::set_y_axis(int new_y_axis)
 
 	y_axis = new_y_axis;
 }
-void Battle_Entity::set_x_max(int new_x_max) 
+void Battle_Entity::set_x_max(int new_x_max)
 {
 	if (new_x_max <= 0)
 		throw std::invalid_argument("invalid x_max enetered (positive only)");
@@ -1393,14 +1435,14 @@ void Battle_Entity::set_entity(std::weak_ptr<Entity> new_entity)
 	{
 		if (p->get_is_player())
 			entity = p;
-		
+
 		else
 			entity = std::make_shared<Entity>(*p);
-		
+
 	}
 	else
 		throw std::runtime_error("original entity no longer exists");
-	
+
 }
 void Battle_Entity::set_is_party_member(bool new_is_party_member) { is_party_member = new_is_party_member; }
 void Battle_Entity::set_status(Battle_Entity_Status new_status) { status = new_status; }

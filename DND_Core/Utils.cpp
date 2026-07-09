@@ -74,7 +74,7 @@ int dice_roll(int sides)
 {
 	static std::random_device rd;  // Non-deterministic seed
 	static std::mt19937 gen(rd()); // Mersenne Twister
-	std::uniform_int_distribution<> dist(1, sides);
+	std::uniform_int_distribution<> dist(1, std::max(1, sides));
 	return dist(gen);
 }
 

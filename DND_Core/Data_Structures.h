@@ -433,7 +433,9 @@ public:
 	//FUNCTIONS
 	int get_proficiency_bonus(int new_level) const;
 
-	int get_stat_modifier(int stat_value) const { return (stat_value - 10) / 2; }
+	int get_stat_modifier(int stat_value) const;
+
+	Rewards drop_reward() const;
 
 	//DISPLAYS
 	void display_stats() const;
@@ -516,6 +518,8 @@ public:
 
 	//CONSTRUCTOR
 	Rewards(int new_gold, int new_xp);
+
+	Rewards(int new_gold, int new_xp, std::unordered_map<int, Owned_Items> new_reward_item_pointers);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
