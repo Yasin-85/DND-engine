@@ -151,6 +151,8 @@ struct Party_Lambda
 	std::function<void()> display_party_members_details;
 	std::function<const Party_State()> get_party_state;
 
+	std::function<void(std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4>)>  set_reward_buffer;
+
 	std::function<void(int, int)> take_gold;
 	std::function<void(int, int)> give_gold;
 

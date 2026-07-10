@@ -23,6 +23,7 @@ private:
 	std::weak_ptr<Quest> active_quest;
 	Battle_Type battle_type;
 	int entity_count{ 1 }, x_max, y_max;
+	bool is_player_victorious;
 
 public:
 	std::unique_ptr<Battle_Manager_Lambda> lambda;
@@ -65,9 +66,9 @@ public:
 
 	void enemy_turn(int id);
 
-	void main_battle();
+	void main_battle(Party_Lambda& part_lambda);
 
-	void battle_end();
+	void battle_end(Party_Lambda& part_lambda);
 
 	//CONSTRUCTOR
 	Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,

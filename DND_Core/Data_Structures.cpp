@@ -511,7 +511,9 @@ Rewards Entity::drop_reward() const
 			continue;
 	}
 
-	return Rewards(reward_gold, reward_xp, reward_item_pointers);
+	Rewards reward(reward_gold, reward_xp, reward_item_pointers);
+
+	return reward;
 }
 
 //DISPLAYS

@@ -38,7 +38,13 @@ void Party::set_party(std::array<std::pair<int, std::weak_ptr<Entity>>, 4>& new_
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Party::set_reward_buffer(std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4>& new_reward_buffer) { reward_buffer = new_reward_buffer; }
+void Party::set_set_reward_buffer() 
+{	
+	lambda->set_reward_buffer = [this](std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4> new_reward_buffer)
+		{
+			reward_buffer = new_reward_buffer;
+		};
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 

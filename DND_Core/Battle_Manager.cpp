@@ -108,7 +108,7 @@ void Battle_Manager::roll_for_initiative()
 
 bool Battle_Manager::is_battle_over()
 {
-	bool any_player_alive{ false }, any_enemy_alive{ false };
+	bool any_player_alive{ false }, all_enemy_dead{ true };
 
 	for (const auto& v : battle_entities)
 	{
@@ -119,14 +119,29 @@ bool Battle_Manager::is_battle_over()
 			any_player_alive = true;
 
 		else
-			any_enemy_alive = true;
+			all_enemy_dead = false;
 	}
 
-	if (any_player_alive || any_enemy_alive)
-		return false;
+	if (any_player_alive && all_enemy_dead)
+	{
+		is_player_victorious = true;
+		return true;
+	}
+
+	else if (!any_player_alive && !all_enemy_dead)
+	{
+		is_player_victorious = false;
+		return true;
+	}
+
+	else if (!any_player_alive && all_enemy_dead)
+	{
+		is_player_victorious = false;
+		return true;
+	}
 
 	else
-		return true;
+		return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -806,7 +821,7 @@ move:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Battle_Manager::main_battle()
+void Battle_Manager::main_battle(Party_Lambda& party_lambda)
 {
 	lambda->print_battle_field();
 
@@ -844,14 +859,64 @@ void Battle_Manager::main_battle()
 		}
 	}
 
-	battle_end();
+	battle_end(party_lambda);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Battle_Manager::battle_end()
+void Battle_Manager::battle_end(Party_Lambda& party_lambda)
 {
+	auto party_reference = party_lambda.get_party();
+	int party_size = party_lambda.get_party_size();
 
+	std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4> reward_buffer;
+
+	for (int i = 0; i < party_size; i++)
+	{
+		reward_buffer[i].first = party_reference[i].first;
+	}
+
+	if (!is_player_victorious)
+	{
+		print("DEFEAT! better luck next time, loser\n", 5);
+		return;
+	}
+
+	std::vector <std::shared_ptr<Rewards>> rewards;
+
+	if (battle_type == Battle_Type::Quest)
+	{
+		if (auto p = active_quest.lock())
+			rewards.push_back(p->get_reward().lock());
+	}
+
+	for (const auto& v : battle_entities)
+	{
+		if (v.second->get_is_party_member())
+			continue;
+
+		if (v.second->get_status() == Battle_Entity_Status::Deserted)
+			continue;
+
+		rewards.push_back(std::make_shared<Rewards>(v.second->get_entity()->drop_reward()));
+	}
+
+	for (const auto& v : battle_entities)
+	{
+		if (!v.second->get_is_party_member())
+			continue;
+
+		if (v.second->get_status() == Battle_Entity_Status::Deserted)
+			continue;
+
+		for (int i = 0; i < party_size; i++)
+		{
+			if (reward_buffer[i].first == v.second->get_original_id())
+				reward_buffer[i].second = rewards;
+		}
+	}
+
+	party_lambda.set_reward_buffer(reward_buffer);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

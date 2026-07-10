@@ -35,7 +35,7 @@ public:
 	const int get_party_size() const;
 
 	void set_party(std::array<std::pair<int, std::weak_ptr<Entity>>, 4>& new_party);
-	void set_reward_buffer(std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4>& new_reward_buffer);
+	void set_set_reward_buffer();
 	void set_party_state(Party_State new_party_state);
 	void set_single_player(bool new_single_player);
 	void set_avg_level(int new_avg_level);
