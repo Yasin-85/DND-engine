@@ -197,7 +197,7 @@ void Party::party_resting(const Data_Base_Lambda& data_base_lambda, const Entity
 		{
 			if (location_id != p->get_current_locaion_id())
 			{
-				print("party members are scattered They must gather to rest\n", 5);
+				print("party members are scattered They must gather to one location to rest\n", 5);
 				print("travel to the same location first\n", 5);
 				return;
 			}
