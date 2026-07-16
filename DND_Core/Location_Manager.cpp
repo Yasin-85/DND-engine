@@ -24,6 +24,16 @@ void Location_Manager::set_get_location_manager()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Location_Manager::set_get_location()
+{
+	lambda->get_location = [this](int id)
+		{
+			return this->location_manager.at(id);
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Location_Manager::set_load_location_manager()
 {
 	lambda->load_location_manager = [this](int id, std::shared_ptr<Location> location)
@@ -439,6 +449,7 @@ void Location_Manager::update_location(const Rewards_Manager_Lambda& rewards_man
 Location_Manager::Location_Manager() : lambda(std::make_unique<Location_Manager_Lambda>())
 {
 	set_get_location_manager();
+	set_get_location();
 	set_load_location_manager();
 	set_load_connected_locations();
 	set_load_location_chest();

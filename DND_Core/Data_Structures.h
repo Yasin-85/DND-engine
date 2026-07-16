@@ -89,6 +89,7 @@ struct Quest_Manager_Lambda
 struct Location_Manager_Lambda
 {
 	std::function<const std::unordered_map<int, std::shared_ptr<Location>>& ()> get_location_manager;
+	std::function<std::weak_ptr<Location>(int)> get_location;
 	std::function<void(int, std::shared_ptr<Location>)> load_location_manager;
 	std::function<void(int, int)> load_connected_locations;
 	std::function<void(int, int, const Rewards_Manager_Lambda&)> load_location_chest;

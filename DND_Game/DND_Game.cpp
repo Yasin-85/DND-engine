@@ -154,6 +154,7 @@ bool main_menu(Entity_Manager_Lambda& EM_lambda, std::unique_ptr<Party>& party)
 
 					if (in_range(party_size, 2, 4))
 						break;
+
 					else
 						print("invalid player count entered\n");
 				}
@@ -188,11 +189,23 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 {
 	print_line(5);
 
-	for (int i = 0; i < party->get_party_size(); i++)
+	int party_size = party->get_party_size();
+	std::array<int, 4> current_location_id;
+
+	for (int i = 0; i < party_size; i++)
 	{
 		if (auto p = party->get_party()[i].second.lock())
 		{
-			int current_location_id = p->get_current_locaion_id();
+			current_location_id[i] = p->get_current_locaion_id();
+
+			if (auto o = LM_lambda.get_location(current_location_id[i]).lock())
+			{
+				print(p->get_name() + ", current location : " + o->get_name() + '\n', 5);
+				o->display_info();
+				print("\n", 5);
+			}
 		}
 	}
+
+
 }

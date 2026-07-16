@@ -19,6 +19,8 @@ public:
 	std::unique_ptr<Location_Manager_Lambda> lambda;
 
 	void set_get_location_manager();
+
+	void set_get_location();
 	
 	void set_load_location_manager();
 	
