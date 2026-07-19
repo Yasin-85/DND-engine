@@ -198,7 +198,7 @@ void Battle_Manager::set_print_battle_field()
 			print("every \033[32m@\033[0m represents a party member and every \033[31m#\033[0m represents an enemy\n", 5);
 
 			// Find max digit length for spacing
-			int max_digits = std::to_string(y_max - 1).length();
+			size_t max_digits = std::to_string(y_max - 1).length();
 
 			for (int y = y_max - 1; y >= 0; y--)
 			{

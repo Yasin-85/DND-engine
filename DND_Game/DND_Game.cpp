@@ -51,7 +51,6 @@ int main(void)
 		{
 			print_line(5);
 			print("D&D Game Engine\n", 5);
-			print_line(5);
 
 			if (main_menu(*EM.lambda, party))
 				return EXIT_SUCCESS;
@@ -59,7 +58,9 @@ int main(void)
 			while (true)
 			{
 				try
-				{
+				{	
+					print_line(5);
+
 					print("choose your action\n"
 						"1. travel to a location\n"
 						"2.	display party member details\n"
@@ -126,6 +127,8 @@ bool main_menu(Entity_Manager_Lambda& EM_lambda, std::unique_ptr<Party>& party)
 	{
 		try
 		{
+			print_line(5);
+
 			print("1.single player\n"
 				"2.multi player\n"
 				"3.quit\n", 5);
