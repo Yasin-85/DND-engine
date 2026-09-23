@@ -17,7 +17,7 @@ struct Data_Base_Lambda;
 class Party
 {
 private:
-	std::array<std::pair<int, std::weak_ptr<Entity>>, 4> party;
+	std::array<std::pair<int, std::weak_ptr<Entity>>, 4> party; // int stands for the universal id aka the one from Entity Manager
 	std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4> reward_buffer;
 	Party_State party_state;
 	bool single_player;

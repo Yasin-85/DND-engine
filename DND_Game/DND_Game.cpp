@@ -58,13 +58,13 @@ int main(void)
 			while (true)
 			{
 				try
-				{	
+				{
 					print_line(5);
 
 					print("choose your action\n"
 						"1. travel to a location\n"
 						"2.	display party member details\n"
-						"3. rest (whole party together)\n"
+						"3. rest (whole party must be together)\n"
 						"4. quests tab\n"
 						"5. save & quit\n", 5);
 
@@ -200,15 +200,96 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 		if (auto p = party->get_party()[i].second.lock())
 		{
 			current_location_id[i] = p->get_current_locaion_id();
-
-			if (auto o = LM_lambda.get_location(current_location_id[i]).lock())
-			{
-				print(p->get_name() + ", current location : " + o->get_name() + '\n', 5);
-				o->display_info();
-				print("\n", 5);
-			}
 		}
 	}
 
+	int choice;
 
+	while (true)
+	{
+		print_line(5);
+
+		print("choose which character wants to travel (1 - " + std::to_string(party_size) + "), -1 to show all characters current info, -2 to go back\n", 5);
+
+		choice = input<int>("your choice : ");
+
+		switch (choice)
+		{
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			
+			if (choice > party_size)
+			{
+				print("invalid party member selected, must be in range of (1 - " + std::to_string(party_size) + ")\n", 5);
+				break;
+			}
+
+			if (auto o = LM_lambda.get_location(current_location_id[choice]).lock())
+			{	
+				std::vector<int> connected_location_ids = o->get_connected_location_ids();
+
+				for (auto& v : connected_location_ids)
+				{
+					if (auto p = LM_lambda.get_location(v).lock())
+					{
+						print(std::to_string(v) + ": " + p->get_name() + ", ", 5);
+					}
+				}
+
+				while (true)
+				{
+					int location_id_choice = input<int>("choose where you want to go (type in their id):", 5);
+
+					bool found{ false };
+					for (auto& v : connected_location_ids)
+					{
+						if (v == location_id_choice)
+						{
+							found = true;
+							break;
+						}
+					}
+
+					if (found)
+					{
+						if (auto p = party->get_party()[choice].second.lock())
+						{
+							p->set_current_location_id(location_id_choice);
+							print("character moved to " + o->get_name() + "\n", 5);
+						}
+					}
+					else
+					{
+						print("invalid location id\n", 5);
+					}
+				}
+			}
+			break;
+
+		case -1:
+			for (int i = 0; i < party_size; i++)
+			{
+				if (auto p = party->get_party()[i].second.lock())
+				{
+					if (auto o = LM_lambda.get_location(current_location_id[i]).lock())
+					{
+						print(p->get_name() + ", current location : " + o->get_name() + '\n', 5);
+						o->display_info();
+						print("\n", 5);
+					}
+				}
+			}
+			break;
+
+		case -2:
+			print("going back\n", 5);
+			return;
+
+		default:
+			print("invalid choice entered\n", 5);
+			break;
+		}
+	}
 }
