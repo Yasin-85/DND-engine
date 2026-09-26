@@ -35,7 +35,7 @@ public:
 	//LOADING FROM TABLES INTO MANAGERS
 	void load_EM(const Entity_Manager_Lambda& EM_lambda);
 
-	void load_LM(const Location_Manager_Lambda& LM_lambda, const Rewards_Manager_Lambda& RM_lambda);
+	void load_LM(const Location_Manager_Lambda& LM_lambda);
 
 	void load_QM(const Quest_Manager_Lambda& QM_lambda, const Rewards_Manager_Lambda& RM_lambda);
 
@@ -95,8 +95,6 @@ public:
 	void set_insert_quest_enemies();
 
 	void set_insert_quest_reward();
-
-	void set_insert_location_reward();
 
 	//SET DELETING FROM TABLES LAMBDA FUNCTIONS
 	void set_delete_from_main_container();

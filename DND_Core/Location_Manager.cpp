@@ -54,16 +54,6 @@ void Location_Manager::set_load_connected_locations()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Location_Manager::set_load_location_chest() 
-{
-	lambda->load_location_chest = [this](int id, int reward_id, const Rewards_Manager_Lambda& rewards_manager_lambda)
-		{
-			this->location_manager.at(id)->set_chest(rewards_manager_lambda.get_reward(reward_id));
-		};
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void Location_Manager::set_clear_location_manager()
 {
 	lambda->clear_location_manager = [this]()
@@ -285,64 +275,16 @@ void Location_Manager::update_location(const Rewards_Manager_Lambda& rewards_man
 			{
 				print_line();
 
-				print("1.add a reward to the location\n"
-					"2.remove a reward from the location\n"
-					"3.add a property to the location\n"
-					"4.remove a property from the location\n"
-					"5.update the location's info\n"
-					"6.go back\n");
+				print("1.add a property to the location\n"
+					"2.remove a property from the location\n"
+					"3.update the location's info\n"
+					"4.go back\n");
 
 				choice = input<int>("your choice : ");
 
 				switch (choice)
 				{
 				case 1:
-				{
-					print_line();
-
-					print("please enter the reward id you wish to add\n");
-
-					int reward_id = ask_id(rewards_manager_lambda.get_rewards_manager(), false, rewards_manager_lambda.display_all);
-
-					location_manager.at(id)->set_chest(rewards_manager_lambda.get_reward(reward_id));
-					data_base_lambda.insert_location_reward(id, reward_id);
-
-					print("reward added\n");
-					break;
-				}
-
-				case 2:
-				{
-					print_line();
-
-					char deletion_choice;
-
-					if (auto p = location_manager.at(id)->get_chest().lock())
-					{
-						print("are you sure you want to delete this reward ?\n");
-						p->display_details();
-					}
-
-					else
-						throw std::runtime_error("ne reward to remove");
-
-					do
-					{
-						deletion_choice = input<char>("Y/N : ");
-
-						if (to_upper(deletion_choice) == 'Y')
-							location_manager.at(id)->remove_chest();
-
-						else if (to_upper(deletion_choice) == 'N')
-							print("removal aborted\n");
-
-						else
-							print("invalid choice entered\n");
-					} while (to_upper(deletion_choice) != 'Y' && to_upper(deletion_choice) != 'N');
-					break;
-				}
-
-				case 3:
 				{
 					print_line();
 
@@ -358,7 +300,7 @@ void Location_Manager::update_location(const Rewards_Manager_Lambda& rewards_man
 					break;
 				}
 
-				case 4:
+				case 2:
 				{
 					print_line();
 
@@ -395,7 +337,7 @@ void Location_Manager::update_location(const Rewards_Manager_Lambda& rewards_man
 					break;
 				}
 
-				case 5:
+				case 3:
 				{
 					print_line();
 
@@ -424,7 +366,7 @@ void Location_Manager::update_location(const Rewards_Manager_Lambda& rewards_man
 					break;
 				}
 
-				case 6:
+				case 4:
 					print("going back\n");
 					no_exit = false;
 					break;
@@ -452,7 +394,6 @@ Location_Manager::Location_Manager() : lambda(std::make_unique<Location_Manager_
 	set_get_location();
 	set_load_location_manager();
 	set_load_connected_locations();
-	set_load_location_chest();
 	set_clear_location_manager();
 	set_display_all();
 }

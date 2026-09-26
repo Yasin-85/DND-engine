@@ -1179,7 +1179,6 @@ Rewards::Rewards(int new_gold, int new_xp, std::unordered_map<int, Owned_Items> 
 const std::string& Location::get_name() const { return name; }
 const std::vector<std::string>& Location::get_properties() const { return properties; }
 const std::vector<int>& Location::get_connected_location_ids() const { return connected_location_ids; }
-const std::weak_ptr<Rewards>& Location::get_chest() const { return chest; }
 
 void Location::set_name(std::string new_name) { name = new_name; }
 void Location::set_properties(std::vector<std::string> new_properties) { properties = new_properties; }
@@ -1206,12 +1205,6 @@ void Location::remove_connected_location_id(int new_location_id)
 		connected_location_ids.erase(it);
 	else
 		throw std::out_of_range("location id doesnt exist in connected location ids list");
-}
-void Location::set_chest(std::weak_ptr<Rewards> new_chest) { chest = new_chest; }
-void Location::remove_chest()
-{
-	chest = std::weak_ptr<Rewards>{};
-	print("reward removed\n");
 }
 
 //FUNCTIONS
@@ -1243,13 +1236,6 @@ void Location::display_info() const
 		}
 		std::cout << "\n";
 	}
-
-	if (auto p = chest.lock())
-	{
-		p->display_details();
-	}
-	else
-		print("no chest\n");
 }
 
 //CONSTRUCTOR

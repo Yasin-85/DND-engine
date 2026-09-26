@@ -26,8 +26,6 @@ public:
 	
 	void set_load_connected_locations();
 	
-	void set_load_location_chest();
-	
 	void set_clear_location_manager();
 
 	void add_location(const Data_Base_Lambda& data_base_lambda);

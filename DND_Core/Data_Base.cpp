@@ -102,8 +102,7 @@ void Data_Base::startup()
 	const char* sql3 = "CREATE TABLE IF NOT EXISTS locations ("
 		"id INTEGER PRIMARY KEY, "
 		"name TEXT NOT NULL, "
-		"properties TEXT, "
-		"reward_id INTEGER DEFAULT NULL REFERENCES rewards(id) ON DELETE SET NULL );";
+		"properties TEXT);";
 
 	rc = sqlite3_prepare_v2(db, sql3, -1, &stmt, nullptr);
 	if (rc != SQLITE_OK)
@@ -370,12 +369,12 @@ void Data_Base::load_EM(const Entity_Manager_Lambda& EM_lambda)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Data_Base::load_LM(const Location_Manager_Lambda& LM_lambda, const Rewards_Manager_Lambda& RM_lambda)
+void Data_Base::load_LM(const Location_Manager_Lambda& LM_lambda)
 {
 	sqlite3_stmt* stmt{ nullptr };
 	int rc{ 0 };
 
-	const char* sql = "SELECT id, name, properties, reward_id FROM locations;";
+	const char* sql = "SELECT id, name, properties FROM locations;";
 
 	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 	if (rc != SQLITE_OK)
@@ -405,11 +404,6 @@ void Data_Base::load_LM(const Location_Manager_Lambda& LM_lambda, const Rewards_
 		}
 
 		LM_lambda.load_location_manager(id, std::make_shared<Location>(name, properties));
-
-		int reward_id = get_fk(stmt, 3);
-
-		if (reward_id > 0)
-			LM_lambda.load_location_chest(id, reward_id, RM_lambda);
 	}
 }
 
@@ -777,7 +771,7 @@ void Data_Base::load_all(const Entity_Manager_Lambda& EM_lambda,
 {
 	load_WI(WI_lambda);
 	load_RM(RM_lambda);
-	load_LM(LM_lambda, RM_lambda);
+	load_LM(LM_lambda);
 	load_EM(EM_lambda);
 	load_QM(QM_lambda, RM_lambda);
 
@@ -1363,39 +1357,6 @@ void Data_Base::set_insert_quest_reward()
 
 			sqlite3_bind_int(stmt, 1, reward_id);
 			sqlite3_bind_int(stmt, 2, quest_id);
-
-			rc = sqlite3_step(stmt);
-			if (rc != SQLITE_DONE)
-			{
-				std::cerr << sqlite3_errmsg(this->db) << '\n';
-				sqlite3_finalize(stmt);
-				throw std::runtime_error("step failed");
-			}
-
-			sqlite3_finalize(stmt);
-		};
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Data_Base::set_insert_location_reward()
-{
-	lambda->insert_location_reward = [this](int location_id, int reward_id)
-		{
-			sqlite3_stmt* stmt{ nullptr };
-			int rc{ 0 };
-
-			const char* sql = "UPDATE locations SET reward_id = ? WHERE id = ?;";
-
-			rc = sqlite3_prepare_v2(this->db, sql, -1, &stmt, nullptr);
-			if (rc != SQLITE_OK)
-			{
-				std::cerr << sqlite3_errmsg(this->db) << '\n';
-				throw std::runtime_error("prepare failed");
-			}
-
-			sqlite3_bind_int(stmt, 1, reward_id);
-			sqlite3_bind_int(stmt, 2, location_id);
 
 			rc = sqlite3_step(stmt);
 			if (rc != SQLITE_DONE)
@@ -2082,7 +2043,6 @@ Data_Base::Data_Base() : lambda(std::make_unique<Data_Base_Lambda>())
 	set_insert_reward_items();
 	set_insert_quest_enemies();
 	set_insert_quest_reward();
-	set_insert_location_reward();
 
 	//SET DELETING FROM TABLES LAMBDA FUNCTIONS
 	set_delete_from_main_container();

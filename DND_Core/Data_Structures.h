@@ -535,14 +535,12 @@ private:
 	std::string name;
 	std::vector<std::string> properties;
 	std::vector<int> connected_location_ids;
-	std::weak_ptr<Rewards> chest;
 
 public:
 	//LOCATION GETTERS AND SETTERS
 	const std::string& get_name() const;
 	const std::vector<std::string>& get_properties() const;
 	const std::vector<int>& get_connected_location_ids() const;
-	const std::weak_ptr<Rewards>& get_chest() const;
 
 	void set_name(std::string new_name);
 	void set_properties(std::vector<std::string> new_properties);
@@ -551,8 +549,6 @@ public:
 	void set_connected_location_ids(std::vector<int> new_connected_location_ids);
 	void add_connected_location_id(int new_location_id);
 	void remove_connected_location_id(int new_location_id);
-	void set_chest(std::weak_ptr<Rewards> new_chest);
-	void remove_chest();
 
 	//FUNCTIONS
 	void display_info() const;

@@ -209,7 +209,7 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 	{
 		print_line(5);
 
-		print("choose which character wants to travel (1 - " + std::to_string(party_size) + "), -1 to show all characters current info, -2 to go back\n", 5);
+		print("choose which character wants to travel (1 - " + std::to_string(party_size) + "), -1 to show all characters current location, -2 to go back\n", 5);
 
 		choice = input<int>("your choice : ");
 
