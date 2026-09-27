@@ -1391,11 +1391,12 @@ void Quest::display_info() const
 }
 
 //CONSTRUCTOR
-Quest::Quest(std::string new_name, std::string new_description, std::string new_quest_giver, int new_quest_level, int new_priority) :
+Quest::Quest(std::string new_name, std::string new_description, std::string new_quest_giver, int new_quest_level, int new_priority, std::weak_ptr<Location> new_location) :
 	name(new_name), description(new_description), quest_giver(new_quest_giver)
 {
 	set_quest_level(new_quest_level);
 	set_priority(new_priority);
+	set_location(new_location);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

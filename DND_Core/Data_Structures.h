@@ -600,7 +600,7 @@ public:
 	void display_info() const;
 
 	//CONSTRUCTOR
-	Quest(std::string new_name, std::string new_description, std::string new_quest_giver, int new_quest_level, int new_priority);
+	Quest(std::string new_name, std::string new_description, std::string new_quest_giver, int new_quest_level, int new_priority, std::weak_ptr<Location> new_location);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
