@@ -1251,6 +1251,7 @@ const std::string& Quest::get_description() const { return description; }
 const std::string& Quest::get_quest_giver() const { return quest_giver; }
 const int& Quest::get_quest_level() const { return quest_level; }
 const int& Quest::get_priority() const { return priority; }
+const std::weak_ptr<Location>& Quest::get_location() const { return location; }
 const std::weak_ptr<Rewards>& Quest::get_reward() const { return reward; }
 const std::unordered_map<int, Enemies>& Quest::get_enemies() const { return enemies; }
 
@@ -1270,6 +1271,13 @@ void Quest::set_priority(int new_priority)
 		priority = new_priority;
 	else
 		throw std::invalid_argument("invalid quest priority entered (positive only)");
+}
+void Quest::set_location(std::weak_ptr<Location> new_location)
+{
+	if (!new_location.expired())
+		location = new_location;
+	else
+		throw std::invalid_argument("invalid location enterd (weak ptr expired)");
 }
 void Quest::set_reward(std::weak_ptr<Rewards> new_reward) { reward = new_reward; }
 void Quest::remove_reward()
@@ -1334,6 +1342,18 @@ void Quest::display_info_without_enemies() const
 {
 	print(get_name() + ", description : " + get_description() + ", quest giver : " + get_quest_giver() +
 		", quest level : " + std::to_string(get_quest_level()) + ", priority : " + std::to_string(get_priority()) + '\n');
+
+	if (auto p = reward.lock())
+	{
+		print("reward : ");
+		p->display_details();
+	}
+	else
+		print("no reward\n");
+
+	auto p = location.lock();
+
+	print("location : " + p->get_name() + '\n');
 }
 
 void Quest::display_info() const
@@ -1349,15 +1369,19 @@ void Quest::display_info() const
 	else
 		print("no reward\n");
 
+	auto p = location.lock();
+
+	print("location : " + p->get_name() + '\n');
+
 	if (enemies.empty())
 		print("no enemies\n");
 	else
 	{
 		for (const auto& v : enemies)
 		{
-			if (auto p = v.second.enemy_ptr.lock())
+			if (auto o = v.second.enemy_ptr.lock())
 			{
-				p->display_info();
+				o->display_info();
 				print("quantity : " + std::to_string(v.second.quantity) + "\n");
 			}
 			else
