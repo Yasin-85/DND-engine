@@ -336,7 +336,7 @@ int main(void)
 					switch (choice)
 					{
 					case 1:
-						QM.add_quest(*DB.lambda);
+						QM.add_quest(*DB.lambda, *LM.lambda);
 						break;
 
 					case 2:
@@ -356,7 +356,7 @@ int main(void)
 						break;
 
 					case 6:
-						QM.update_quest(*EM.lambda, *RM.lambda, *DB.lambda);
+						QM.update_quest(*EM.lambda, *RM.lambda, *LM.lambda, *DB.lambda);
 						break;
 
 					case 7:

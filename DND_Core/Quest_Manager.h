@@ -29,7 +29,7 @@ public :
 	
 	void set_clear_quest_manager();
 
-	void add_quest(const Data_Base_Lambda& data_base_lambda);
+	void add_quest(const Data_Base_Lambda& data_base_lambda, const Location_Manager_Lambda& location_manager_lambda);
 
 	bool remove_quest(const Data_Base_Lambda& data_base_lambda);
 	
@@ -41,7 +41,8 @@ public :
 	
 	void set_get_quest();
 
-	void update_quest(const Entity_Manager_Lambda& entity_manager_lambda, const Rewards_Manager_Lambda& rewards_manager_lambda, const Data_Base_Lambda& data_base_lambda);
+	void update_quest(const Entity_Manager_Lambda& entity_manager_lambda, const Rewards_Manager_Lambda& rewards_manager_lambda,
+		const Location_Manager_Lambda& location_manager_lambda, const Data_Base_Lambda& data_base_lambda);
 
 	//CONSTRUCTOR
 	Quest_Manager();
