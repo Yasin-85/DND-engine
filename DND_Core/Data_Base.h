@@ -37,7 +37,7 @@ public:
 
 	void load_LM(const Location_Manager_Lambda& LM_lambda);
 
-	void load_QM(const Quest_Manager_Lambda& QM_lambda, const Rewards_Manager_Lambda& RM_lambda);
+	void load_QM(const Quest_Manager_Lambda& QM_lambda, const Rewards_Manager_Lambda& RM_lambda, const Location_Manager_Lambda& LM_lambda);
 
 	void load_RM(const Rewards_Manager_Lambda& RM_lambda);
 

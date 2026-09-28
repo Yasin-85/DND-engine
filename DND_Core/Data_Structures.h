@@ -84,6 +84,7 @@ struct Quest_Manager_Lambda
 	std::function<void()> display_by_priority;
 	std::function<void()> display_by_quest_level;
 	std::function<std::weak_ptr<Quest>(int)> get_quest;
+	std::function<void(int, int, const Location_Manager_Lambda&)> load_quest_locations;
 };
 
 struct Location_Manager_Lambda
@@ -565,7 +566,7 @@ class Quest
 private:
 	//QUEST VARIABLES
 	std::string name, description, quest_giver;
-	int quest_level, priority;
+	int quest_level, priority, location_id;
 	std::weak_ptr<Rewards> reward;
 	std::weak_ptr<Location> location;
 	std::unordered_map<int, Enemies> enemies;
@@ -577,8 +578,9 @@ public:
 	const std::string& get_quest_giver() const;
 	const int& get_quest_level() const;
 	const int& get_priority() const;
-	const std::weak_ptr<Location>& get_location() const;
+	const int& get_location_id() const;
 	const std::weak_ptr<Rewards>& get_reward() const;
+	const std::weak_ptr<Location>& get_location() const;
 	const std::unordered_map<int, Enemies>& get_enemies() const;
 
 	void set_name(std::string new_name);
@@ -586,6 +588,7 @@ public:
 	void set_quest_giver(std::string new_quest_giver);
 	void set_quest_level(int new_quest_level);
 	void set_priority(int new_priority);
+	void set_location_id(int new_location_id);
 	void set_location(std::weak_ptr<Location> new_location);
 	void set_reward(std::weak_ptr<Rewards> new_reward);
 	void remove_reward();
@@ -600,7 +603,9 @@ public:
 	void display_info() const;
 
 	//CONSTRUCTOR
-	Quest(std::string new_name, std::string new_description, std::string new_quest_giver, int new_quest_level, int new_priority, std::weak_ptr<Location> new_location);
+	Quest(std::string new_name, std::string new_description, std::string new_quest_giver, int new_quest_level, int new_priority, int new_location_id, std::weak_ptr<Location> new_location);
+
+	Quest(std::string new_name, std::string new_description, std::string new_quest_giver, int new_quest_level, int new_priority);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

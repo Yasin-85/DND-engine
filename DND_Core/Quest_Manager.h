@@ -22,6 +22,8 @@ public :
 	void set_get_quest_manager();
 	
 	void set_load_quest_manager();
+
+	void set_load_quest_locations();
 	
 	void set_load_quest_reward();
 	

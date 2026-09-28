@@ -29,6 +29,16 @@ void Quest_Manager::set_load_quest_manager()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Quest_Manager::set_load_quest_locations()
+{
+	lambda->load_quest_locations = [this](int id, int location_id, const Location_Manager_Lambda& location_manager_lambda)
+		{
+			this->quest_manager.at(id)->set_location(location_manager_lambda.get_location(location_id));
+		};
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Quest_Manager::set_load_quest_reward()
 {
 	lambda->load_quest_reward = [this](int id, int reward_id, const Rewards_Manager_Lambda& rewards_manager_lambda)
@@ -64,7 +74,7 @@ void Quest_Manager::add_quest(const Data_Base_Lambda& data_base_lambda, const Lo
 	print_line();
 
 	std::string name, description, quest_giver;
-	int quest_level, priority;
+	int quest_level, priority, location_id;
 	std::weak_ptr<Location> location;
 
 	print("please enter the quest details in order\n");
@@ -75,11 +85,13 @@ void Quest_Manager::add_quest(const Data_Base_Lambda& data_base_lambda, const Lo
 	quest_giver = input<std::string>("quest_giver : ");
 	quest_level = input<int>("quest level : ");
 	priority = input<int>("prioriry : ");
-	location = location_manager_lambda.get_location(ask_id(location_manager_lambda.get_location_manager(), false, location_manager_lambda.display_all, 
-		"please enter the location id for the quest to take place in \n(-1 to cancel, -2 to display list)"));
+	location_id = ask_id(location_manager_lambda.get_location_manager(), false, location_manager_lambda.display_all,
+		"please enter the location id for the quest to take place in \n(-1 to cancel, -2 to display list)");
+	location = location_manager_lambda.get_location(location_id);
+
 	try
 	{
-		quest_manager[id] = std::make_shared<Quest>(name, description, quest_giver, quest_level, priority, location);
+		quest_manager[id] = std::make_shared<Quest>(name, description, quest_giver, quest_level, priority, location_id, location);
 		data_base_lambda.insert_quest(*quest_manager.at(id), id);
 		print("new quest made, to add rewards and enemies to the quest go to the update a quest tab\n");
 	}
@@ -410,7 +422,7 @@ void Quest_Manager::update_quest(const Entity_Manager_Lambda& entity_manager_lam
 					quest_manager.at(id)->display_info_without_enemies();
 
 					std::string name, description, quest_giver;
-					int quest_level, priority;
+					int quest_level, priority, location_id;
 
 					print("please enter the updated details\n");
 					name = input<std::string>("name : ");
@@ -418,13 +430,15 @@ void Quest_Manager::update_quest(const Entity_Manager_Lambda& entity_manager_lam
 					quest_giver = input<std::string>("quest_giver : ");
 					quest_level = input<int>("quest level : ");
 					priority = input<int>("prioriry : ");
+					location_id = ask_id(location_manager_lambda.get_location_manager(), false, location_manager_lambda.display_all,
+						"please enter the location id for the quest to take place in \n(-1 to cancel, -2 to display list)");
 
 					quest_manager.at(id)->set_name(name);
 					quest_manager.at(id)->set_description(description);
 					quest_manager.at(id)->set_quest_giver(quest_giver);
 					quest_manager.at(id)->set_priority(priority);
-					quest_manager.at(id)->set_location(location_manager_lambda.get_location(ask_id(location_manager_lambda.get_location_manager(), false, location_manager_lambda.display_all,
-						"please enter the location id for the quest to take place in \n(-1 to cancel, -2 to display list)")));
+					quest_manager.at(id)->set_location_id(location_id);
+					quest_manager.at(id)->set_location(location_manager_lambda.get_location(location_id));
 
 					print("done\n");
 

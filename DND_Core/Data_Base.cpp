@@ -172,7 +172,8 @@ void Data_Base::startup()
 		"quest_giver TEXT NOT NULL, "
 		"quest_level INTEGER NOT NULL, "
 		"priority INTEGER NOT NULL, "
-		"reward_id INTEGER DEFAULT NULL REFERENCES rewards(id) ON DELETE SET NULL );";
+		"reward_id INTEGER DEFAULT NULL REFERENCES rewards(id) ON DELETE SET NULL, "
+		"location_id INTEGER REFERENCES locations(id) ON DELETE CASCADE );";
 
 	rc = sqlite3_prepare_v2(db, sql5, -1, &stmt, nullptr);
 	if (rc != SQLITE_OK)
@@ -409,12 +410,12 @@ void Data_Base::load_LM(const Location_Manager_Lambda& LM_lambda)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Data_Base::load_QM(const Quest_Manager_Lambda& QM_lambda, const Rewards_Manager_Lambda& RM_lambda)
+void Data_Base::load_QM(const Quest_Manager_Lambda& QM_lambda, const Rewards_Manager_Lambda& RM_lambda, const Location_Manager_Lambda& LM_lambda)
 {
 	sqlite3_stmt* stmt;
 	int rc{ 0 };
 
-	const char* sql = "SELECT id, name, description, quest_giver, quest_level, priority, reward_id FROM quests;";
+	const char* sql = "SELECT id, name, description, quest_giver, quest_level, priority, reward_id, location_id FROM quests;";
 
 	rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 	if (rc != SQLITE_OK)
@@ -431,8 +432,10 @@ void Data_Base::load_QM(const Quest_Manager_Lambda& QM_lambda, const Rewards_Man
 		std::string quest_giver = get_str(stmt, 3);
 		int quest_level = sqlite3_column_int(stmt, 4);
 		int priority = sqlite3_column_int(stmt, 5);
+		int location_id = get_fk(stmt, 7);
 
 		QM_lambda.load_quest_manager(id, std::make_shared<Quest>(name, description, quest_giver, quest_level, priority));
+		QM_lambda.load_quest_locations(id, location_id, LM_lambda);
 
 		int reward_id = get_fk(stmt, 6);
 
@@ -773,7 +776,7 @@ void Data_Base::load_all(const Entity_Manager_Lambda& EM_lambda,
 	load_RM(RM_lambda);
 	load_LM(LM_lambda);
 	load_EM(EM_lambda);
-	load_QM(QM_lambda, RM_lambda);
+	load_QM(QM_lambda, RM_lambda, LM_lambda);
 
 	load_connected_locations(LM_lambda);
 	load_inventories(EM_lambda, WI_lambda);
@@ -1134,7 +1137,7 @@ void Data_Base::set_insert_quest()
 			sqlite3_stmt* stmt{ nullptr };
 			int rc{ 0 };
 
-			const char* sql = "INSERT INTO quests(id, name, description, quest_giver, quest_level, priority) VALUES (?, ?, ?, ?, ?, ?);";
+			const char* sql = "INSERT INTO quests(id, name, description, quest_giver, quest_level, priority, location_id) VALUES (?, ?, ?, ?, ?, ?, ?);";
 
 			rc = sqlite3_prepare_v2(this->db, sql, -1, &stmt, nullptr);
 			if (rc != SQLITE_OK)
@@ -1149,6 +1152,7 @@ void Data_Base::set_insert_quest()
 			sqlite3_bind_text(stmt, 4, quest.get_quest_giver().c_str(), -1, SQLITE_TRANSIENT);
 			sqlite3_bind_int(stmt, 5, quest.get_quest_level());
 			sqlite3_bind_int(stmt, 6, quest.get_priority());
+			sqlite3_bind_int(stmt, 7, quest.get_location_id());
 
 			rc = sqlite3_step(stmt);
 			if (rc != SQLITE_DONE)
