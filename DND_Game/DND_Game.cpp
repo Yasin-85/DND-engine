@@ -20,6 +20,7 @@
 
 bool main_menu(Entity_Manager_Lambda& EM_lambda, std::unique_ptr<Party>& party);
 void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party);
+void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -153,13 +154,13 @@ bool main_menu(Entity_Manager_Lambda& EM_lambda, std::unique_ptr<Party>& party)
 
 				while (true)
 				{
-					party_size = input<int>("please enter the player count (2 - 4) : ");
+					party_size = input<int>("please enter the player count (2 - 4) : ", 5);
 
 					if (in_range(party_size, 2, 4))
 						break;
 
 					else
-						print("invalid player count entered\n");
+						print("invalid player count entered\n", 5);
 				}
 				party = std::make_unique<Party>(false, EM_lambda, party_size);
 				party->lambda->display_party_members_details();
@@ -219,7 +220,7 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 		case 2:
 		case 3:
 		case 4:
-			
+
 			if (choice > party_size)
 			{
 				print("invalid party member selected, must be in range of (1 - " + std::to_string(party_size) + ")\n", 5);
@@ -227,7 +228,7 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 			}
 
 			if (auto o = LM_lambda.get_location(current_location_id[choice]).lock())
-			{	
+			{
 				std::vector<int> connected_location_ids = o->get_connected_location_ids();
 
 				for (auto& v : connected_location_ids)
@@ -280,6 +281,78 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 						print("\n", 5);
 					}
 				}
+			}
+			break;
+
+		case -2:
+			print("going back\n", 5);
+			return;
+
+		default:
+			print("invalid choice entered\n", 5);
+			break;
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party)
+{
+	const auto& quests_copy = QM_lambda.get_quest_manager();
+
+	int party_size = party->get_party_size();
+	int choice{ 0 };
+
+	while (true)
+	{
+		print_line(5);
+
+		print("choose which characters's quest tab you want to open (1 - " + std::to_string(party_size) + "), -1 to show all characters details, -2 to go back\n", 5);
+
+		choice = input<int>("your choice : ", 5);
+
+		switch (choice)
+		{
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+
+			if (choice > party_size)
+			{
+				print("invalid party member selected, must be in range of (1 - " + std::to_string(party_size) + ")\n", 5);
+				break;
+			}
+
+			if (auto p = party->get_party()[choice - 1].second.lock())
+			{
+				const std::vector<int>& ongoing_quests_id_copy = p->get_ongoing_quests();
+				const std::vector<int>& compeleted_quests_id_copy = p->get_completed_quests();
+
+				std::unordered_map<int, std::weak_ptr<Quest>> ongoing_quests_copy;
+				std::unordered_map<int, std::weak_ptr<Quest>> completed_quests_copy;
+
+				for (const auto& v : ongoing_quests_id_copy)
+				{
+					ongoing_quests_copy[v] = quests_copy.at(v);
+				}
+
+				for (const auto& v : compeleted_quests_id_copy)
+				{
+					completed_quests_copy[v] = quests_copy.at(v);
+				}
+			}
+
+			break;
+
+		case -1:
+			print_line(5);
+
+			for (int i = 0; i < party_size; i++)
+			{
+				if (auto p = party->get_party()[i].second.lock())
+					p->display_info();
 			}
 			break;
 
