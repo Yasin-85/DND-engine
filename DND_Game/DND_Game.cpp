@@ -300,12 +300,20 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party)
 {
 	const auto& quests_copy = QM_lambda.get_quest_manager();
+	std::unordered_map<int, std::weak_ptr<Quest>> untouched_quests;
+
+	for (const auto& v : quests_copy)
+	{
+		untouched_quests[v.first] = v.second;
+	}
 
 	int party_size = party->get_party_size();
 	int choice{ 0 };
 
 	while (true)
 	{
+	character_selection:
+
 		print_line(5);
 
 		print("choose which characters's quest tab you want to open (1 - " + std::to_string(party_size) + "), -1 to show all characters details, -2 to go back\n", 5);
@@ -336,11 +344,94 @@ void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& part
 				for (const auto& v : ongoing_quests_id_copy)
 				{
 					ongoing_quests_copy[v] = quests_copy.at(v);
+					untouched_quests.erase(v);
 				}
 
 				for (const auto& v : compeleted_quests_id_copy)
 				{
 					completed_quests_copy[v] = quests_copy.at(v);
+					untouched_quests.erase(v);
+				}
+
+				while (true)
+				{
+
+
+					print("1. display the current ongoing quests\n"
+						"2. display finished quests\n"
+						"3. display availabe quests\n"
+						"4. accept a new quest\n"
+						"5. go back", 5);
+
+					int inner_choice = input<int>("your choice : ");
+
+					switch (inner_choice)
+					{
+					case 1:
+						print_line();
+
+						if (!ongoing_quests_copy.empty())
+						{
+							for (const auto& v : ongoing_quests_copy)
+							{
+								print(std::to_string(v.first) + " ");
+
+								if (auto o = v.second.lock())
+									o->display_info_without_enemies();
+							}
+						}
+						else
+							print("no ongoing quests\n");
+
+						break;
+
+					case 2:
+						print_line();
+
+						if (!completed_quests_copy.empty())
+						{
+							for (const auto& v : completed_quests_copy)
+							{
+								print(std::to_string(v.first) + " ");
+
+								if (auto o = v.second.lock())
+									o->display_info_without_enemies();
+							}
+						}
+						else
+							print("you havnt completed any quest yet\n");
+
+						break;
+
+					case 3:
+						print_line();
+
+						if (!untouched_quests.empty())
+						{
+							for (const auto& v : untouched_quests)
+							{
+								print(std::to_string(v.first) + " ");
+
+								if (auto o = v.second.lock())
+									o->display_info_without_enemies();
+							}
+						}
+						else
+							print("quest container is empty\n");
+
+						break;
+
+					case 4:
+						break;
+
+					case 5:
+						print("going back\n", 5);
+						goto character_selection;
+
+					default:
+						print("invalid choice entered\n", 5);
+						break;
+					}
 				}
 			}
 
