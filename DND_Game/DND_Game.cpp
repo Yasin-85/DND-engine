@@ -374,7 +374,7 @@ void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& part
 						{
 							for (const auto& v : ongoing_quests_copy)
 							{
-								print(std::to_string(v.first) + " ");
+								print(std::to_string(v.first) + " ", 5);
 
 								if (auto o = v.second.lock())
 									o->display_info_without_enemies();
@@ -386,13 +386,13 @@ void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& part
 						break;
 
 					case 2:
-						print_line();
+						print_line(5);
 
 						if (!completed_quests_copy.empty())
 						{
 							for (const auto& v : completed_quests_copy)
 							{
-								print(std::to_string(v.first) + " ");
+								print(std::to_string(v.first) + " ", 5);
 
 								if (auto o = v.second.lock())
 									o->display_info_without_enemies();
@@ -404,13 +404,13 @@ void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& part
 						break;
 
 					case 3:
-						print_line();
+						print_line(5);
 
 						if (!untouched_quests.empty())
 						{
 							for (const auto& v : untouched_quests)
 							{
-								print(std::to_string(v.first) + " ");
+								print(std::to_string(v.first) + " ", 5);
 
 								if (auto o = v.second.lock())
 									o->display_info_without_enemies();
@@ -422,6 +422,22 @@ void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& part
 						break;
 
 					case 4:
+						print_line(5);
+
+						print("which quest do u wish to accept\n", 5);
+						int quest_id = ask_id(untouched_quests, false,
+							[&]{
+								for (auto& v : untouched_quests)
+								{
+									print(std::to_string(v.first) + " ", 5);
+
+									if (auto o = v.second.lock())
+										o->display_info_without_enemies();
+								}
+							});
+					
+						p->add_ongoing_quest(quest_id);
+						print("quest added\n", 5);
 						break;
 
 					case 5:
