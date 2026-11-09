@@ -21,6 +21,7 @@
 bool main_menu(Entity_Manager_Lambda& EM_lambda, std::unique_ptr<Party>& party);
 void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party);
 void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party);
+void quest_tackle(Battle_Manager_Lambda& BM_lambda, Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,7 +68,8 @@ int main(void)
 						"2.	display party member details\n"
 						"3. rest (whole party must be together)\n"
 						"4. quests tab\n"
-						"5. save & quit\n", 5);
+						"5. tackle a quest\n"
+						"6. save & quit\n", 5);
 
 					int choice = input<int>("your chioce : ", 5);
 
@@ -86,9 +88,13 @@ int main(void)
 						break;
 
 					case 4:
+						quest_tracker(*QM.lambda, party);
 						break;
 
 					case 5:
+						break;
+
+					case 6:
 						print_line(5);
 
 						print("saving...\n", 5);
@@ -472,4 +478,46 @@ void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& part
 			break;
 		}
 	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void quest_tackle(Battle_Manager_Lambda& BM_lambda, Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party)
+{
+	print_line(5);
+
+	print("choose which quest to progress\n", 5);
+
+	int quest_count{ 0 };
+	std::vector<std::pair<int,std::shared_ptr<Quest>>> eligable_quests; 
+	//quests will be loaded in order of their findings and printing of quest_counter
+	//and in the pair the first int is the index of the party member that the quest belongs to
+
+	for (int i = 0; i < party->get_party_size(); i++) //cycle through all party members
+	{
+		if (auto p = party->get_party()[i].second.lock()) //get each party member and lock check it into shared ptr
+		{
+			print(p->get_name() + " : \n", 5);
+			for (const auto& v : p->get_ongoing_quests()) //cycle through the quests of the selected party member
+			{
+				if (const auto& q = QM_lambda.get_quest(v).lock()) //get each quest from QM and lock check it into shared ptr
+				{
+					if (q->get_location_id() == p->get_current_locaion_id()) //check to see if party member is in the quest location
+					{
+						eligable_quests.push_back({ i, q }); //store the quest in a vector
+						quest_count++;
+
+						print(std::to_string(quest_count) + " : " + q->get_name() + "\n    " + q->get_description() + "\n", 5);
+					}
+				}
+			}
+			print_line(5);
+		}
+	}
+
+
+
+
+
+
 }
