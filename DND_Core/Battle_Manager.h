@@ -66,9 +66,9 @@ public:
 
 	void enemy_turn(int id);
 
-	void main_battle(Party_Lambda& part_lambda);
+	bool main_battle(Party_Lambda& part_lambda);
 
-	void battle_end(Party_Lambda& part_lambda);
+	bool battle_end(Party_Lambda& part_lambda);
 
 	//CONSTRUCTOR
 	Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,
