@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <winsqlite/winsqlite3.h>
+#include <algorithm>
 
 #include "Utils.h"
 #include "Data_Structures.h"
@@ -15,12 +16,14 @@
 #include "Data_Base.h"
 #include "Shop.h"
 #include "Battle_Manager.h"
+#include "Enums.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool main_menu(Entity_Manager_Lambda& EM_lambda, std::unique_ptr<Party>& party);
 void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party);
 void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party);
+void quest_tackle(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -67,7 +70,8 @@ int main(void)
 						"2.	display party member details\n"
 						"3. rest (whole party must be together)\n"
 						"4. quests tab\n"
-						"5. save & quit\n", 5);
+						"5. tackle a quest\n"
+						"6. save & quit\n", 5);
 
 					int choice = input<int>("your chioce : ", 5);
 
@@ -86,9 +90,14 @@ int main(void)
 						break;
 
 					case 4:
+						quest_tracker(*QM.lambda, party);
 						break;
 
 					case 5:
+						quest_tackle(*QM.lambda, party);
+						break;
+
+					case 6:
 						print_line(5);
 
 						print("saving...\n", 5);
@@ -470,6 +479,146 @@ void quest_tracker(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& part
 		default:
 			print("invalid choice entered\n", 5);
 			break;
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void quest_tackle(Quest_Manager_Lambda& QM_lambda, std::unique_ptr<Party>& party)
+{
+	print_line(5);
+
+	print("choose which quest to progress\n", 5);
+
+	int quest_count{ 0 };
+	std::vector<std::pair<int, std::shared_ptr<Quest>>> eligable_quests;
+	std::vector<int> eligable_quests_id;
+	//quests will be loaded in order of their findings and printing of quest_counter
+	//and in the vector the first int is the index of the party member that the quest belongs to
+
+	for (int i = 0; i < party->get_party_size(); i++) //cycle through all party members
+	{
+		if (auto p = party->get_party()[i].second.lock()) //get each party member and lock check it into shared ptr
+		{
+			print(p->get_name() + " : \n", 5);
+			for (const auto& v : p->get_ongoing_quests()) //cycle through the quests of the selected party member
+			{
+				if (const auto& q = QM_lambda.get_quest(v).lock()) //get each quest from QM and lock check it into shared ptr
+				{
+					if (q->get_location_id() == p->get_current_locaion_id()) //check to see if party member is in the quest location
+					{
+						eligable_quests.push_back({ i, q }); //store the quest in a vector
+						eligable_quests_id.push_back(v); //store the quest's id in a vector
+						quest_count++;
+
+						print(std::to_string(quest_count) + " : " + q->get_name() + "\n    " + q->get_description() + "\n", 5);
+					}
+				}
+			}
+			print_line(5);
+		}
+	}
+
+	while (true)
+	{
+		if (quest_count == 0) //no eligable quest
+		{
+			print("no quest in the current location of party members\n", 5);
+			return;
+		}
+
+		int choice = input<int>("which quest do u wish to progess (enter the quest index, -1 to go back) : ", 5);
+
+		if (choice == -1) //leaving function
+			return;
+
+		if (choice > quest_count || choice < 1) 
+			print("invalid index entered\n");
+
+		else
+		{
+			std::vector<int> quest_owners_index;
+			std::vector<std::pair<int, std::weak_ptr<Entity>>> participating_players;
+
+			for (const auto& v : eligable_quests) //storing everyone who owns the selcted quest for multi progression
+			{
+				if (v.second == eligable_quests.at(choice - 1).second)
+				{
+					quest_owners_index.push_back(v.first);
+				}
+			}
+
+			//printing the selected quest's info
+			print("chosen quest no" + std::to_string(choice) + " : " + eligable_quests.at(choice - 1).second->get_name() + '\n', 5);
+
+			print("quest owner/owners : \n", 5);
+
+			for (const auto& v : quest_owners_index)
+			{
+				if (auto p = party->get_party()[v].second.lock())
+				{
+					participating_players.push_back({ party->get_party()[v].first, party->get_party()[v].second}); //pushing in the quest owners first
+					print("    " + p->get_name() + '\n', 5);
+				}
+			}
+
+			print("these party members will participate as well due to being in the same location : \n", 5);
+
+			for (int i = 0; i < party->get_party_size(); i++) //checking for party members in the quest area
+			{
+				auto it = std::find(quest_owners_index.begin(), quest_owners_index.end(), i); //making sure duplicate party members are not printed
+
+				if (it != quest_owners_index.end())
+					continue;
+
+				if (auto p = party->get_party()[i].second.lock())
+				{
+					if (p->get_current_locaion_id() == eligable_quests.at(choice - 1).second->get_location_id())
+					{
+						//pushing in the rest of the party members participating
+						participating_players.push_back({ party->get_party()[i].first, party->get_party()[i].second });
+
+						print(p->get_name() + '\n', 5);
+					}
+				}
+			}
+
+			while (true)
+			{
+				char choice2 = input<char>("are you sure you want to proceed ? Y/N : ", 5);
+				choice2 = to_upper(choice2);
+
+				if (choice2 == 'Y')
+				{
+					Battle_Manager battle(Battle_Type::Quest, participating_players,
+						eligable_quests.at(choice - 1).second, {});
+
+					if (battle.main_battle(*party->lambda))
+					{
+						print("quest progressed\n", 5);
+						
+						for (const auto& v : quest_owners_index) //quest tracking and progression handeling
+						{
+							if (auto p = party->get_party()[v].second.lock())
+							{
+								p->remove_ongoing_quest(eligable_quests_id.at(choice - 1));
+								p->add_completed_quest(eligable_quests_id.at(choice - 1));
+							}
+						}
+					}
+					return;
+				}
+				else if (choice2 == 'N')
+				{
+					print("going back\n", 5);
+					break;
+				}
+				else
+				{
+					print("invalid choice entered\n", 5);
+				}
+			}
 		}
 	}
 }

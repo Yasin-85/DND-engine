@@ -137,9 +137,9 @@ void Party::assign_party_members(Entity_Manager_Lambda& entity_manager_lambda)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Party::assign_member_rewards(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda)
+void Party::assign_member_rewards(const Data_Base_Lambda& data_base_lambda, const Entity_Manager_Lambda& entity_manager_lambda)
 {
-	for (int i = 0; i < get_party_size(); i++) // iterate through both arrays
+	for (int i = 0; i < get_party_size(); i++) // iterate through party array
 	{
 		if (auto p = party[i].second.lock()) // check for entity's existance
 		{
@@ -207,11 +207,10 @@ void Party::party_resting(const Data_Base_Lambda& data_base_lambda, const Entity
 	int choice, inner_choice, inner_choice1;
 
 	rest_heal();
+	assign_member_rewards(data_base_lambda, entity_manager_lambda);
 
 	while (true)
 	{
-		;
-
 		try
 		{
 			print_line(5);

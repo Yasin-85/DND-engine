@@ -44,7 +44,7 @@ public:
 	//FUNCTIONS
 	void assign_party_members(Entity_Manager_Lambda& entity_manager_lambda);
 
-	void assign_member_rewards(Data_Base_Lambda& data_base_lambda, Entity_Manager_Lambda& entity_manager_lambda);
+	void assign_member_rewards(const Data_Base_Lambda& data_base_lambda, const Entity_Manager_Lambda& entity_manager_lambda);
 
 	void rest_heal();
 

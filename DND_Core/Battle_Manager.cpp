@@ -698,6 +698,9 @@ void Battle_Manager::enemy_turn(int id)
 		if (!v.second->get_is_party_member())
 			continue;
 
+		if (v.second->get_status() != Battle_Entity_Status::Alive)
+			continue;
+
 		player_x = v.second->get_x_axis();
 		player_y = v.second->get_y_axis();
 
@@ -821,7 +824,7 @@ move:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Battle_Manager::main_battle(Party_Lambda& party_lambda)
+bool Battle_Manager::main_battle(Party_Lambda& party_lambda)
 {
 	lambda->print_battle_field();
 
@@ -859,12 +862,12 @@ void Battle_Manager::main_battle(Party_Lambda& party_lambda)
 		}
 	}
 
-	battle_end(party_lambda);
+	return battle_end(party_lambda);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Battle_Manager::battle_end(Party_Lambda& party_lambda)
+bool Battle_Manager::battle_end(Party_Lambda& party_lambda)
 {
 	auto party_reference = party_lambda.get_party();
 	int party_size = party_lambda.get_party_size();
@@ -879,7 +882,7 @@ void Battle_Manager::battle_end(Party_Lambda& party_lambda)
 	if (!is_player_victorious)
 	{
 		print("DEFEAT! better luck next time, loser\n", 5);
-		return;
+		return false;
 	}
 
 	std::vector <std::shared_ptr<Rewards>> rewards;
@@ -917,6 +920,9 @@ void Battle_Manager::battle_end(Party_Lambda& party_lambda)
 	}
 
 	party_lambda.set_reward_buffer(reward_buffer);
+
+	print("VICTORY! go have fun with the rewards\n", 5);
+	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
