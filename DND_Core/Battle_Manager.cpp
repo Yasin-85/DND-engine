@@ -377,10 +377,10 @@ void Battle_Manager::entity_random_placement()
 						{
 							for (int i = 0; i < x_max; i++)
 							{
-								if (!is_position_occupied(i, y_max - j))
+								if (!is_position_occupied(i, y_max - 1 - j))
 								{
 									v.second->set_x_axis(i);
-									v.second->set_y_axis(y_max - j);
+									v.second->set_y_axis(y_max - 1 - j);
 									throw std::invalid_argument("");
 								}
 							}
@@ -388,10 +388,10 @@ void Battle_Manager::entity_random_placement()
 						throw std::runtime_error("too many enemy entities");
 					}
 
-				} while (is_position_occupied(x, y_max - y));
+				} while (is_position_occupied(x, y_max - 1 - y));
 
 				v.second->set_x_axis(x);
-				v.second->set_y_axis(y_max - y);
+				v.second->set_y_axis(y_max - 1 - y);
 			}
 		}
 		catch (const std::invalid_argument) {}
@@ -890,7 +890,8 @@ bool Battle_Manager::battle_end(Party_Lambda& party_lambda)
 	if (battle_type == Battle_Type::Quest)
 	{
 		if (auto p = active_quest.lock())
-			rewards.push_back(p->get_reward().lock());
+			if (auto o = p->get_reward().lock())
+				rewards.push_back(o);
 	}
 
 	for (const auto& v : battle_entities)

@@ -23,7 +23,7 @@ private:
 	std::weak_ptr<Quest> active_quest;
 	Battle_Type battle_type;
 	int entity_count{ 1 }, x_max, y_max;
-	bool is_player_victorious;
+	bool is_player_victorious{ false };
 
 public:
 	std::unique_ptr<Battle_Manager_Lambda> lambda;
