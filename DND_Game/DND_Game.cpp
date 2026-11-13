@@ -250,7 +250,7 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 
 				while (true)
 				{
-					int location_id_choice = input<int>("choose where you want to go (type in their id):", 5);
+					int location_id_choice = input<int>("choose where you want to go (type in the location id):", 5);
 
 					bool found{ false };
 					for (auto& v : connected_location_ids)
@@ -268,6 +268,29 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 						{
 							p->set_current_location_id(location_id_choice);
 							print("character moved to " + o->get_name() + "\n", 5);
+
+							int random_encounter_chance = dice_roll(20);
+							if (random_encounter_chance == 1)
+							{
+								std::vector<std::pair<int, std::weak_ptr<Entity>>> participating_members;
+
+								for (int i = 0; i < party->get_party_size(); i++)
+								{
+									if (auto p = party->lambda->get_party()[i].second.lock())
+									{
+										if (p->get_current_locaion_id() == location_id_choice)
+										{
+											participating_members.push_back({ party->lambda->get_party()[i].first, party->lambda->get_party()[i].second });
+										}
+									}
+								}
+
+
+
+
+
+
+							}
 						}
 					}
 					else
