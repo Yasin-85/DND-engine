@@ -105,7 +105,7 @@ int main(void)
 						EM.lambda->dirty_entity_checkpoint(*DB.lambda);
 
 						print("progress saved! \nexiting to main menu\n", 5);
-						break;
+						return EXIT_SUCCESS;
 
 					default:
 						print("invalid choice entered\n", 5);
@@ -236,7 +236,7 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 				break;
 			}
 
-			if (auto o = LM_lambda.get_location(current_location_id[choice]).lock())
+			if (auto o = LM_lambda.get_location(current_location_id[choice - 1]).lock())
 			{
 				std::vector<int> connected_location_ids = o->get_connected_location_ids();
 

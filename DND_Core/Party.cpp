@@ -58,7 +58,7 @@ void Party::set_single_player(bool new_single_player) { single_player = new_sing
 
 void Party::set_avg_level(int new_avg_level)
 {
-	if (avg_level <= 0)
+	if (new_avg_level <= 0)
 		throw std::invalid_argument("invalid avg_level entered must be positive");
 	else
 		avg_level = new_avg_level;

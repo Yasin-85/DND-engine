@@ -107,7 +107,7 @@ void Shop::set_actual_shopping()
 						if (!in_range(item_index, 1, 5))
 							throw std::invalid_argument("invalid item index entered");
 
-						if (!in_range(amount, 1, this->shop_inventory[item_index].second.quantity))
+						if (!in_range(amount, 1, this->shop_inventory[item_index - 1].second.quantity))
 							throw std::invalid_argument("invalid amount entered");
 
 						if (auto p = this->shop_inventory[item_index - 1].second.item.lock())
