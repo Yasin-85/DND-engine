@@ -21,7 +21,7 @@ private:
 	std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4> reward_buffer;
 	Party_State party_state;
 	bool single_player;
-	int avg_level, party_size;
+	int party_size;
 
 public:
 	std::unique_ptr<Party_Lambda> lambda;
@@ -31,14 +31,12 @@ public:
 	const std::array<std::pair<int, std::vector<std::shared_ptr<Rewards>>>, 4>& get_reward_buffer() const;
 	const Party_State get_party_state() const;
 	const bool get_single_player() const;
-	const int get_avg_level() const;
 	const int get_party_size() const;
 
 	void set_party(std::array<std::pair<int, std::weak_ptr<Entity>>, 4>& new_party);
 	void set_set_reward_buffer();
 	void set_party_state(Party_State new_party_state);
 	void set_single_player(bool new_single_player);
-	void set_avg_level(int new_avg_level);
 	void set_party_size(int new_party_size);
 
 	//FUNCTIONS

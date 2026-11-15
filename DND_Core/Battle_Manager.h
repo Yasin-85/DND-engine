@@ -72,5 +72,5 @@ public:
 
 	//CONSTRUCTOR
 	Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,
-		std::weak_ptr<Quest> active_quest, std::vector<std::pair<int,Enemies>> enemies);
+		std::weak_ptr<Quest> active_quest, std::unordered_map<int,Enemies> enemies);
 };

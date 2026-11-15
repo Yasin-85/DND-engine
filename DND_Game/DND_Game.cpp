@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <winsqlite/winsqlite3.h>
 #include <algorithm>
+#include <iterator>
 
 #include "Utils.h"
 #include "Data_Structures.h"
@@ -78,7 +79,7 @@ int main(void)
 					switch (choice)
 					{
 					case 1:
-
+						travel(*LM.lambda, *EM.lambda, party);
 						break;
 
 					case 2:
@@ -198,7 +199,7 @@ bool main_menu(Entity_Manager_Lambda& EM_lambda, std::unique_ptr<Party>& party)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
+void travel(Location_Manager_Lambda& LM_lambda, Entity_Manager_Lambda& EM_lambda, std::unique_ptr<Party>& party)
 {
 	print_line(5);
 
@@ -270,9 +271,11 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 							print("character moved to " + o->get_name() + "\n", 5);
 
 							int random_encounter_chance = dice_roll(20);
+							int avg_Plevel{ 0 }, total_Plevel{ 0 }, total_Elevel{ 0 }, total_Ecount{ 0 }, fall_back{ 0 };
+
 							if (random_encounter_chance == 1)
 							{
-								std::vector<std::pair<int, std::weak_ptr<Entity>>> participating_members;
+								std::vector<std::pair<int, std::weak_ptr<Entity>>> participating_players;
 
 								for (int i = 0; i < party->get_party_size(); i++)
 								{
@@ -280,16 +283,47 @@ void travel(Location_Manager_Lambda& LM_lambda, std::unique_ptr<Party>& party)
 									{
 										if (p->get_current_locaion_id() == location_id_choice)
 										{
-											participating_members.push_back({ party->lambda->get_party()[i].first, party->lambda->get_party()[i].second });
+											participating_players.push_back({ party->lambda->get_party()[i].first, party->lambda->get_party()[i].second });
+											total_Plevel += p->get_level();
 										}
 									}
 								}
 
+								avg_Plevel = std::floor(static_cast<double>(total_Plevel) / participating_players.size());
 
+								std::unordered_map<int, Enemies> random_enemies;
 
+								int total_EM_size = EM_lambda.get_entity_manager().size();
+								while (true)
+								{
+									int rand_index = dice_roll(total_EM_size) - 1;
+									auto EM_it = EM_lambda.get_entity_manager().begin();
+									std::advance(EM_it, rand_index);
 
+									if (auto p = EM_it->second.lock())
+									{
+										if (!p->get_is_player() && p->get_level() <= avg_Plevel && total_Elevel + p->get_level() <= total_Plevel)
+										{
+											random_enemies[EM_it->first].enemy_ptr = EM_it->second;
+											random_enemies[EM_it->first].quantity++;
 
+											total_Ecount++;
+											total_Elevel += p->get_level();
+										}
+									}
 
+									if (total_Ecount >= participating_players.size() * 2 || total_Elevel >= total_Plevel 
+										|| fall_back == 50)
+										break;
+
+									fall_back++;
+								}
+
+								if (!random_enemies.empty())
+								{
+									Battle_Manager battle(Battle_Type::Random_Encounter, participating_players, {}, random_enemies);
+									battle.main_battle(*party->lambda);
+								}
 							}
 						}
 					}

@@ -929,7 +929,7 @@ bool Battle_Manager::battle_end(Party_Lambda& party_lambda)
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Battle_Manager::Battle_Manager(Battle_Type new_battle_type, const std::vector<std::pair<int, std::weak_ptr<Entity>>>& players,
-	std::weak_ptr<Quest> new_active_quest, std::vector<std::pair<int, Enemies>> new_enemies) : lambda(std::make_unique<Battle_Manager_Lambda>()), battle_type(new_battle_type)
+	std::weak_ptr<Quest> new_active_quest, std::unordered_map<int, Enemies> new_enemies) : lambda(std::make_unique<Battle_Manager_Lambda>()), battle_type(new_battle_type)
 {
 	for (int i = 0; i < players.size(); i++, entity_count++)
 	{

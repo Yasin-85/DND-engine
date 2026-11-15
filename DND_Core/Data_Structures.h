@@ -47,7 +47,7 @@ struct Owned_Items
 struct Enemies
 {
 	std::weak_ptr<Entity> enemy_ptr;
-	int quantity{ 1 };
+	int quantity{ 0 };
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,7 +100,7 @@ struct Location_Manager_Lambda
 
 struct Entity_Manager_Lambda
 {
-	std::function<const std::unordered_map<int, std::shared_ptr<Entity>>& ()> get_entity_manager;
+	std::function<const std::unordered_map<int, std::weak_ptr<Entity>>& ()> get_entity_manager;
 	std::function<void(int, std::shared_ptr<Entity>)> load_entity_manager;
 	std::function<void(int, int, const Owned_Items&)> load_inventories;
 	std::function<void(int, int, int, const World_Inventory_Lambda&)> link_equipment;
