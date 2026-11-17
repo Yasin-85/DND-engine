@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <winsqlite/winsqlite3.h>
+#include <cstring>
 
 #include "Utils.h"
 #include "Data_Structures.h"
@@ -13,7 +14,7 @@
 #include "Quest_Manager.h"
 #include "Data_Base.h"
 
-int main(void)
+int main(int argc, char* argv[])
 {
 	bool no_exit{ true }, inner_no_exit{ true };
 	int choice;
@@ -24,6 +25,13 @@ int main(void)
 	Location_Manager LM;
 	Quest_Manager QM;
 	Data_Base DB;
+
+	//sql CLI
+	if (argc > 1 && std::strcmp(argv[1], "--sql") == 0)
+	{
+		DB.sql_console();
+		return EXIT_SUCCESS;
+	}
 
 	try
 	{

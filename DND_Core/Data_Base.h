@@ -120,6 +120,9 @@ public:
 
 	void set_update_quest();
 
+	//SQL CONSOLE
+	void sql_console();
+
 	//CONSTRUCTOR
 	Data_Base();
 
